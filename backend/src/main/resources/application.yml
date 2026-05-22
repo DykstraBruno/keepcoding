@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: keepcoding
+
+  # --- Banco de dados PostgreSQL ---
+  datasource:
+    url: jdbc:postgresql://localhost:5432/keepcoding
+    username: ${DB_USERNAME:keepcoding}
+    password: ${DB_PASSWORD:keepcoding}
+
+  jpa:
+    hibernate:
+      # 'update' para desenvolvimento. Em producao use migrations (Flyway/Liquibase).
+      ddl-auto: update
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # --- Spring AI / DevCoach ---
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:changeme}
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.4
+
+# --- Sandbox Judge0 (execucao de codigo) ---
+judge0:
+  api-url: ${JUDGE0_API_URL:https://judge0-ce.p.rapidapi.com}
+  api-key: ${JUDGE0_API_KEY:}
+  # IDs de linguagem no Judge0 CE
+  language-id:
+    java: 62        # OpenJDK 17
+    typescript: 74  # TypeScript 5
+
+# --- Autenticacao JWT ---
+keepcoding:
+  jwt:
+    # Em producao, defina JWT_SECRET via variavel de ambiente (>= 32 bytes).
+    secret: ${JWT_SECRET:change-this-secret-to-a-long-random-value-min-32-bytes-keepcoding}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}   # 24h
+
+server:
+  port: 8080
