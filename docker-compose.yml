@@ -1,0 +1,17 @@
+# Sobe o PostgreSQL local para o KeepCoding.
+# Uso:  docker compose up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: keepcoding-postgres
+    environment:
+      POSTGRES_DB: keepcoding
+      POSTGRES_USER: keepcoding
+      POSTGRES_PASSWORD: keepcoding
+    ports:
+      - "5432:5432"
+    volumes:
+      - keepcoding_pgdata:/var/lib/postgresql/data
+
+volumes:
+  keepcoding_pgdata:

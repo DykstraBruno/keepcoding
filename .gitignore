@@ -1,0 +1,21 @@
+# ---- Backend (Java / Maven) ----
+backend/target/
+*.class
+*.jar
+!**/maven-wrapper.jar
+
+# ---- Frontend (Angular / Node) ----
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# ---- Ambiente ----
+*.env
+.env
+*.log
