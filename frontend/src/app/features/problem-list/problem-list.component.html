@@ -1,0 +1,30 @@
+<div class="page">
+  <h1 class="page-title">Problemas</h1>
+  <p class="page-sub">Escolha um desafio e treine com o DevCoach.</p>
+
+  @if (loading()) {
+    <p class="msg">Carregando problemas…</p>
+  } @else if (error()) {
+    <p class="msg msg--error">Falha ao carregar os problemas. O backend está rodando?</p>
+  } @else {
+    <div class="columns">
+      @for (group of groups(); track group.difficulty) {
+        <section class="column">
+          <h2 class="column-title" [class]="'column-title--' + group.difficulty.toLowerCase()">
+            {{ group.label }}
+            <span class="column-count">{{ group.items.length }}</span>
+          </h2>
+
+          @for (problem of group.items; track problem.id) {
+            <a class="card" [routerLink]="['/problems', problem.id]">
+              <span class="card-title">{{ problem.title }}</span>
+              <span class="card-go">→</span>
+            </a>
+          } @empty {
+            <p class="column-empty">Nenhum problema neste nível.</p>
+          }
+        </section>
+      }
+    </div>
+  }
+</div>
