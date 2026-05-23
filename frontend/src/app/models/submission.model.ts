@@ -24,4 +24,10 @@ export interface SubmissionResponse {
   totalTests: number;
   coachFeedback: CoachFeedback;
   createdAt: string;
+  /** XP creditado nesta submissão (0 se não houve primeiro acerto). */
+  xpAwarded: number;
+  /** true se esta foi a primeira vez que o usuário resolveu o problema. */
+  firstSolve: boolean;
+  /** XP total do usuário após esta submissão. */
+  userXp: number;
 }

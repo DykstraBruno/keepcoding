@@ -3,6 +3,7 @@ package com.keepcoding.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keepcoding.domain.Problem;
+import com.keepcoding.domain.SolvedProblem;
 import com.keepcoding.domain.Submission;
 import com.keepcoding.domain.User;
 import com.keepcoding.domain.enums.SubmissionStatus;
@@ -10,6 +11,7 @@ import com.keepcoding.dto.CoachFeedback;
 import com.keepcoding.dto.SubmissionRequest;
 import com.keepcoding.dto.SubmissionResponse;
 import com.keepcoding.repository.ProblemRepository;
+import com.keepcoding.repository.SolvedProblemRepository;
 import com.keepcoding.repository.SubmissionRepository;
 import com.keepcoding.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -35,6 +37,7 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final ProblemRepository problemRepository;
     private final UserRepository userRepository;
+    private final SolvedProblemRepository solvedProblemRepository;
     private final Judge0Service judge0Service;
     private final CoachAiService coachAiService;
     private final ObjectMapper objectMapper;
@@ -62,12 +65,28 @@ public class SubmissionService {
                 judge0Service.execute(problem, request.language(), request.code());
         submission.setStatus(execution.status());
 
-        // 3. DevCoach analisa a qualidade da solucao
+        // 3. Se passou, credita XP — apenas na primeira vez que o usuário acerta este problema.
         boolean accepted = execution.status() == SubmissionStatus.ACCEPTED;
+        int xpAwarded = 0;
+        boolean firstSolve = false;
+        if (accepted && !solvedProblemRepository
+                .existsByUserIdAndProblemId(user.getId(), problem.getId())) {
+            xpAwarded = problem.getDifficulty().xp();
+            firstSolve = true;
+            solvedProblemRepository.save(SolvedProblem.builder()
+                    .user(user)
+                    .problem(problem)
+                    .xpAwarded(xpAwarded)
+                    .build());
+            user.setXp(user.getXp() + xpAwarded);
+            user = userRepository.save(user);
+        }
+
+        // 4. DevCoach analisa a qualidade da solução
         CoachFeedback feedback = coachAiService.analyze(
                 problem, request.language(), request.code(), accepted);
 
-        // 4. Serializa o feedback e persiste o resultado final
+        // 5. Serializa o feedback e persiste o resultado final
         submission.setCoachFeedbackJson(toJson(feedback));
         submission = submissionRepository.save(submission);
 
@@ -77,7 +96,10 @@ public class SubmissionService {
                 execution.passedTests(),
                 execution.totalTests(),
                 feedback,
-                submission.getCreatedAt());
+                submission.getCreatedAt(),
+                xpAwarded,
+                firstSolve,
+                user.getXp());
     }
 
     private String toJson(CoachFeedback feedback) {

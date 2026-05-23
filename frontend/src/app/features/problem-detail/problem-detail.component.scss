@@ -180,3 +180,22 @@
   text-align: center;
   color: var(--text-dim);
 }
+
+/* ---------- Flash de XP ---------- */
+.xp-flash {
+  margin: 0.5rem 0 0;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a1d27;
+  background: linear-gradient(90deg, #f0c674, #e6a23c);
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+
+.xp-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-style: italic;
+}

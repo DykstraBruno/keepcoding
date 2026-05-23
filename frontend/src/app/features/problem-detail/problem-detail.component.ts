@@ -4,6 +4,7 @@ import { CodeEditorComponent, EditorLanguage } from './components/code-editor/co
 import { DevCoachComponent } from './components/dev-coach/dev-coach.component';
 import { ProblemService } from '../../services/problem.service';
 import { SubmissionService } from '../../services/submission.service';
+import { AuthService } from '../../services/auth.service';
 import { Problem } from '../../models/problem.model';
 import { CoachVerdict } from '../../models/coach.model';
 import { Language, SubmissionResponse } from '../../models/submission.model';
@@ -32,6 +33,7 @@ export class ProblemDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly problemService = inject(ProblemService);
   private readonly submissionService = inject(SubmissionService);
+  private readonly authService = inject(AuthService);
 
   // ---- Estado reativo (signals) ----
   readonly problem = signal<Problem | null>(null);
@@ -98,6 +100,8 @@ export class ProblemDetailComponent implements OnInit {
         next: (res) => {
           this.result.set(res);
           this.running.set(false);
+          // Sincroniza o XP no header se a submissão concedeu pontos.
+          this.authService.updateXp(res.userXp);
         },
         error: (err) => {
           console.error('Falha na submissão', err);

@@ -16,7 +16,10 @@
           </h2>
 
           @for (problem of group.items; track problem.id) {
-            <a class="card" [routerLink]="['/problems', problem.id]">
+            <a class="card" [class.card--solved]="problem.solved" [routerLink]="['/problems', problem.id]">
+              <span class="card-check" [attr.aria-label]="problem.solved ? 'Resolvido' : null">
+                {{ problem.solved ? '✓' : '' }}
+              </span>
               <span class="card-title">{{ problem.title }}</span>
               <span class="card-go">→</span>
             </a>

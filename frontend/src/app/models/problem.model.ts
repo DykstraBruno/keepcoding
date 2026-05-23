@@ -5,6 +5,8 @@ export interface ProblemSummary {
   id: number;
   title: string;
   difficulty: Difficulty;
+  /** true se o usuário autenticado já resolveu este problema. */
+  solved: boolean;
 }
 
 /** Caso de teste de um problema. */

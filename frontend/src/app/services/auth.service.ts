@@ -46,6 +46,17 @@ export class AuthService {
     return this.token !== null;
   }
 
+  /** Atualiza o XP do usuário logado (chamado após uma submissão ACCEPTED inédita). */
+  updateXp(newXp: number): void {
+    const current = this.currentUser();
+    if (!current || current.xp === newXp) {
+      return;
+    }
+    const updated = { ...current, xp: newXp };
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    this.currentUser.set(updated);
+  }
+
   /** Salva token + usuário no localStorage e atualiza o signal. */
   private persist(res: AuthResponse): void {
     localStorage.setItem(TOKEN_KEY, res.token);

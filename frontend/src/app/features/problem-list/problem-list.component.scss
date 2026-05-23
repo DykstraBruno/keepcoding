@@ -76,7 +76,6 @@
 .card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
   padding: 0.7rem 0.8rem;
   margin-bottom: 0.5rem;
@@ -85,14 +84,28 @@
   border-radius: 8px;
   color: var(--text);
   text-decoration: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .card:hover {
   border-color: var(--accent);
 }
 
+.card--solved {
+  border-color: rgba(63, 185, 80, 0.45);
+  background: linear-gradient(90deg, rgba(63, 185, 80, 0.12), var(--panel-2) 60%);
+}
+
+.card-check {
+  flex-shrink: 0;
+  width: 1.1rem;
+  text-align: center;
+  color: var(--easy);
+  font-weight: 800;
+}
+
 .card-title {
+  flex: 1;
   font-size: 0.9rem;
   font-weight: 600;
 }

@@ -54,6 +54,11 @@
               <strong>{{ r.status }}</strong>
               <span>{{ r.passedTests }} / {{ r.totalTests }} testes</span>
             </div>
+            @if (r.firstSolve && r.xpAwarded > 0) {
+              <p class="xp-flash">✨ +{{ r.xpAwarded }} XP — Primeiro acerto!</p>
+            } @else if (r.status === 'ACCEPTED') {
+              <p class="xp-note">Você já tinha resolvido este problema — sem XP novo.</p>
+            }
           } @else {
             <p class="console__msg console__msg--idle">
               Submeta seu código para ver o veredito e o feedback do DevCoach.
