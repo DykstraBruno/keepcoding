@@ -1,0 +1,58 @@
+@if (challenge(); as c) {
+  <div class="arch">
+
+    <!-- ==================== CONTEXTO ==================== -->
+    <section class="panel panel--left">
+      <header class="arch-header">
+        <h1 class="arch-title">{{ c.title }}</h1>
+        <span class="difficulty" [class]="'difficulty--' + c.difficulty.toLowerCase()">
+          {{ c.difficulty }}
+        </span>
+      </header>
+
+      <h2 class="section-title">Contexto</h2>
+      <p class="arch-text">{{ c.context }}</p>
+
+      <h2 class="section-title">Requisitos</h2>
+      <p class="arch-text">{{ c.requirements }}</p>
+    </section>
+
+    <!-- ============== EDITOR + PREVIEW + COACH ============== -->
+    <section class="panel panel--right">
+      <label class="field-label">Diagrama da arquitetura (Mermaid)</label>
+      <textarea
+        class="code-area"
+        spellcheck="false"
+        [ngModel]="mermaidCode()"
+        (ngModelChange)="mermaidCode.set($event)"></textarea>
+
+      <label class="field-label">Pré-visualização</label>
+      <app-mermaid-preview [code]="mermaidCode()" />
+
+      <label class="field-label">Justificativas — decisões de projeto</label>
+      <textarea
+        class="notes-area"
+        spellcheck="false"
+        placeholder="Explique suas escolhas: por que cada componente, trade-offs, como atende aos requisitos…"
+        [ngModel]="notes()"
+        (ngModelChange)="notes.set($event)"></textarea>
+
+      <div class="action-bar">
+        <button
+          type="button"
+          class="btn-submit"
+          [disabled]="running()"
+          (click)="onSubmit()">
+          {{ running() ? 'Analisando…' : 'Submeter arquitetura' }}
+        </button>
+      </div>
+
+      <app-dev-coach [verdict]="coachVerdict()" [loading]="running()" />
+    </section>
+
+  </div>
+} @else if (loadError()) {
+  <p class="loading">Não foi possível carregar o desafio. Verifique se o backend está rodando.</p>
+} @else {
+  <p class="loading">Carregando desafio…</p>
+}

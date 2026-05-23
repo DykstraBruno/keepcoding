@@ -1,0 +1,30 @@
+<div class="page">
+  <h1 class="page-title">Desafios de Arquitetura</h1>
+  <p class="page-sub">Monte uma arquitetura para o contexto e deixe o DevCoach analisar.</p>
+
+  @if (loading()) {
+    <p class="msg">Carregando desafios…</p>
+  } @else if (error()) {
+    <p class="msg msg--error">Falha ao carregar os desafios. O backend está rodando?</p>
+  } @else {
+    <div class="columns">
+      @for (group of groups(); track group.difficulty) {
+        <section class="column">
+          <h2 class="column-title" [class]="'column-title--' + group.difficulty.toLowerCase()">
+            {{ group.label }}
+            <span class="column-count">{{ group.items.length }}</span>
+          </h2>
+
+          @for (challenge of group.items; track challenge.id) {
+            <a class="card" [routerLink]="['/architecture', challenge.id]">
+              <span class="card-title">{{ challenge.title }}</span>
+              <span class="card-go">→</span>
+            </a>
+          } @empty {
+            <p class="column-empty">Nenhum desafio neste nível.</p>
+          }
+        </section>
+      }
+    </div>
+  }
+</div>
