@@ -1,5 +1,7 @@
 package com.keepcoding.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keepcoding.domain.ArchitectureChallenge;
 import com.keepcoding.domain.Problem;
 import com.keepcoding.domain.User;
@@ -22,10 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Popula o banco na primeira execução:
+ * Popula o banco a cada inicialização (de forma idempotente):
  *  - usuário demo;
- *  - catálogo de problemas de código carregado de /seed/problems.csv;
- *  - desafios de arquitetura.
+ *  - catálogo de problemas de código a partir de /seed/problems.csv;
+ *  - desafios de arquitetura a partir de /seed/architecture-challenges.json
+ *    (apenas títulos ainda não cadastrados são inseridos).
  */
 @Slf4j
 @Component
@@ -36,8 +39,10 @@ public class DataSeeder implements CommandLineRunner {
     private final ProblemRepository problemRepository;
     private final ArchitectureChallengeRepository architectureChallengeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ObjectMapper objectMapper;
 
     private static final String CATALOG_RESOURCE = "/seed/problems.csv";
+    private static final String ARCH_CHALLENGES_RESOURCE = "/seed/architecture-challenges.json";
     private static final int BATCH_SIZE = 200;
 
     @Override
@@ -64,8 +69,9 @@ public class DataSeeder implements CommandLineRunner {
 
     // ---------------------------------------------------- catálogo de problemas
     /**
-     * Lê o arquivo de catálogo (linhas no formato {@code D|Título},
-     * onde D é E/M/H) e persiste em lotes para acelerar a carga inicial.
+     * Lê o arquivo de catálogo (linhas {@code D|Título}, onde D é E/M/H)
+     * e persiste em lotes para acelerar a carga inicial. Roda apenas
+     * quando a tabela está vazia.
      */
     private void seedProblemCatalog() {
         if (problemRepository.count() > 0) {
@@ -128,54 +134,46 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    // ----------------------------------------------- desafios de arquitetura
+    // -------------------------------------------------- desafios de arquitetura
+    /**
+     * Carrega o catálogo de desafios de arquitetura do JSON. A inserção é
+     * idempotente: só insere títulos novos, deixando intactos os já existentes
+     * — assim novos desafios podem ser adicionados a cada deploy sem
+     * necessidade de resetar o banco.
+     */
     private void seedArchitectureChallenges() {
-        if (architectureChallengeRepository.count() > 0) {
+        InputStream in = getClass().getResourceAsStream(ARCH_CHALLENGES_RESOURCE);
+        if (in == null) {
+            log.warn("[Seed] Recurso {} não encontrado; desafios de arquitetura não foram carregados.",
+                    ARCH_CHALLENGES_RESOURCE);
             return;
         }
+        try (InputStream input = in) {
+            List<ChallengeSeed> seeds = objectMapper.readValue(
+                    input, new TypeReference<List<ChallengeSeed>>() {});
 
-        architectureChallengeRepository.save(ArchitectureChallenge.builder()
-                .title("Blog Pessoal")
-                .difficulty(Difficulty.EASY)
-                .context("""
-                        Você vai publicar um blog pessoal com artigos sobre programação. \
-                        O tráfego é baixo (algumas centenas de visitas por dia) e o conteúdo \
-                        muda poucas vezes por semana.""")
-                .requirements("""
-                        - Servir as páginas com baixa latência.
-                        - Custo de operação mínimo.
-                        - Fácil de publicar novos artigos.""")
-                .build());
-
-        architectureChallengeRepository.save(ArchitectureChallenge.builder()
-                .title("Encurtador de URLs")
-                .difficulty(Difficulty.MEDIUM)
-                .context("""
-                        Projete um serviço que recebe uma URL longa e devolve uma URL curta. \
-                        Ao acessar a URL curta, o usuário é redirecionado para a original. \
-                        O serviço terá leituras (redirecionamentos) muito mais frequentes que \
-                        escritas (criação de links).""")
-                .requirements("""
-                        - Suportar milhões de redirecionamentos por dia.
-                        - Redirecionamento com latência muito baixa.
-                        - Geração de códigos curtos únicos.
-                        - Tolerar picos de leitura sem degradar.""")
-                .build());
-
-        architectureChallengeRepository.save(ArchitectureChallenge.builder()
-                .title("Feed de Rede Social")
-                .difficulty(Difficulty.HARD)
-                .context("""
-                        Projete o feed de uma rede social: cada usuário vê uma linha do tempo \
-                        com as publicações de quem segue. A base tem dezenas de milhões de \
-                        usuários, alguns com milhões de seguidores.""")
-                .requirements("""
-                        - Montar o feed com baixa latência na leitura.
-                        - Lidar com usuários "celebridade" (fan-out massivo).
-                        - Escalar escrita de publicações e leitura de feeds.
-                        - Tolerar falhas de componentes sem derrubar o feed.""")
-                .build());
-
-        log.info("[Seed] 3 desafios de arquitetura criados.");
+            int created = 0;
+            int skipped = 0;
+            for (ChallengeSeed seed : seeds) {
+                if (architectureChallengeRepository.existsByTitle(seed.title())) {
+                    skipped++;
+                    continue;
+                }
+                architectureChallengeRepository.save(ArchitectureChallenge.builder()
+                        .title(seed.title())
+                        .difficulty(Difficulty.valueOf(seed.difficulty()))
+                        .context(seed.context())
+                        .requirements(seed.requirements())
+                        .build());
+                created++;
+            }
+            log.info("[Seed] Desafios de arquitetura: {} criados, {} já existiam.",
+                    created, skipped);
+        } catch (Exception e) {
+            log.error("[Seed] Falha ao carregar os desafios de arquitetura.", e);
+        }
     }
+
+    /** Estrutura intermediária para desserializar o JSON dos desafios de arquitetura. */
+    private record ChallengeSeed(String title, String difficulty, String context, String requirements) {}
 }

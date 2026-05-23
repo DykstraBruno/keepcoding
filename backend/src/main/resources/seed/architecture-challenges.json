@@ -1,0 +1,98 @@
+[
+  {
+    "title": "Blog Pessoal",
+    "difficulty": "EASY",
+    "context": "Você vai publicar um blog pessoal com artigos sobre programação. O tráfego é baixo (algumas centenas de visitas por dia) e o conteúdo muda poucas vezes por semana.",
+    "requirements": "- Servir as páginas com baixa latência.\n- Custo de operação mínimo.\n- Fácil de publicar novos artigos."
+  },
+  {
+    "title": "Aplicativo To-Do Pessoal",
+    "difficulty": "EASY",
+    "context": "Aplicativo de lista de tarefas para uso individual. O usuário cria, marca como concluída e remove tarefas. Tráfego baixo (dezenas a centenas de usuários simultâneos), sem requisitos de tempo real.",
+    "requirements": "- Persistir as tarefas entre sessões e dispositivos.\n- Sincronizar entre clientes web e mobile do mesmo usuário.\n- Custo de operação baixo.\n- Permitir trabalhar offline e sincronizar depois."
+  },
+  {
+    "title": "Catálogo Online de Produtos",
+    "difficulty": "EASY",
+    "context": "Vitrine somente-leitura do catálogo de uma loja física: apenas listagem e busca de produtos, sem carrinho nem checkout. O catálogo é atualizado uma vez por dia por um job interno.",
+    "requirements": "- Páginas servidas com baixa latência.\n- Busca por nome e por categoria.\n- Tolerar picos de visitas em campanhas de marketing.\n- Conteúdo facilmente cacheável."
+  },
+  {
+    "title": "Encurtador de URLs",
+    "difficulty": "MEDIUM",
+    "context": "Projete um serviço que recebe uma URL longa e devolve uma URL curta. Ao acessar a URL curta, o usuário é redirecionado para a original. O serviço terá leituras (redirecionamentos) muito mais frequentes que escritas (criação de links).",
+    "requirements": "- Suportar milhões de redirecionamentos por dia.\n- Redirecionamento com latência muito baixa.\n- Geração de códigos curtos únicos.\n- Tolerar picos de leitura sem degradar."
+  },
+  {
+    "title": "E-commerce Básico",
+    "difficulty": "MEDIUM",
+    "context": "Loja online típica de pequeno/médio porte: catálogo, carrinho, checkout e pedidos. Algumas centenas de pedidos por dia, com picos de 10x em promoções. Pagamento processado por um gateway externo.",
+    "requirements": "- Suportar picos sazonais sem degradar a navegação.\n- Carrinho persistente mesmo com o usuário deslogado.\n- Garantir integridade do estoque em checkouts concorrentes.\n- Histórico de pedidos e status para o cliente.\n- Integração com gateway de pagamento por API."
+  },
+  {
+    "title": "Chat em Tempo Real",
+    "difficulty": "MEDIUM",
+    "context": "Aplicativo de mensagens 1-a-1 e em grupo, estilo WhatsApp Web. Milhares de usuários simultâneos, com expectativa de mensagens entregues em poucos segundos.",
+    "requirements": "- Entrega em tempo real (push/websocket).\n- Histórico persistido por conversa.\n- Notificações para destinatários offline.\n- Indicadores de presença e \"digitando…\".\n- Suportar grupos grandes (centenas de membros)."
+  },
+  {
+    "title": "Sistema de Reservas (Hotelaria/Voos)",
+    "difficulty": "MEDIUM",
+    "context": "Plataforma onde usuários consultam disponibilidade e reservam quartos ou voos. Leituras (busca) predominam, mas as escritas (reserva) exigem consistência forte — não pode vender o mesmo recurso duas vezes.",
+    "requirements": "- Pesquisa rápida por datas, destino e filtros.\n- Reserva atômica, sem overbooking.\n- Cancelamento e remarcação consistentes.\n- Picos sazonais (10x em feriados e promoções).\n- Integração com fornecedores externos via API."
+  },
+  {
+    "title": "Microsserviços de Delivery",
+    "difficulty": "MEDIUM",
+    "context": "Plataforma de delivery (estilo iFood/Uber Eats). Domínios bem distintos: usuários, restaurantes, pedidos, entregadores e pagamentos. Cada domínio cresce e falha de forma independente.",
+    "requirements": "- Decompor por domínio em microsserviços.\n- Comunicação assíncrona entre serviços (eventos/fila).\n- Localização do entregador atualizada em tempo real.\n- Cada serviço deve escalar de forma independente.\n- Tolerância a falha: queda de um domínio não pode derrubar os outros."
+  },
+  {
+    "title": "Módulo de Inventário (ERP)",
+    "difficulty": "MEDIUM",
+    "context": "Módulo de gestão de estoque dentro de um ERP corporativo. Controla entrada, saída e transferência de mercadorias entre dezenas de armazéns. Vários operadores trabalham em paralelo sobre os mesmos SKUs.",
+    "requirements": "- Consistência forte do saldo de estoque (sem contagens negativas).\n- Auditoria completa de toda movimentação.\n- Integração com os módulos de Compras e Vendas.\n- Relatórios em tempo quase-real para gestão.\n- Operações em lote (importação de notas fiscais)."
+  },
+  {
+    "title": "Gateway de Pagamentos",
+    "difficulty": "MEDIUM",
+    "context": "Serviço interno que recebe pedidos de cobrança da sua plataforma e orquestra a comunicação com diferentes provedores (Stripe, PagSeguro, PayPal). Falhas parciais e timeouts dos provedores são frequentes.",
+    "requirements": "- Roteamento por bandeira, região e custo.\n- Idempotência: não cobrar duas vezes em caso de retry.\n- Tolerância a provedor fora do ar (fallback).\n- Webhooks confiáveis de confirmação assíncrona.\n- Observabilidade fim-a-fim (audit trail de cada cobrança)."
+  },
+  {
+    "title": "Plataforma de Cursos Online",
+    "difficulty": "MEDIUM",
+    "context": "Plataforma de vídeo on-demand para cursos gravados. Alunos assistem aulas, fazem exercícios e recebem certificados. Catálogo grande, com picos de matrículas em lançamentos.",
+    "requirements": "- Streaming de vídeo com baixa latência inicial.\n- Catálogo pesquisável por área e instrutor.\n- Progresso do aluno persistido por aula.\n- Emissão de certificados ao concluir.\n- Suportar picos de matrículas (10x em lançamentos)."
+  },
+  {
+    "title": "Feed de Rede Social",
+    "difficulty": "HARD",
+    "context": "Projete o feed de uma rede social: cada usuário vê uma linha do tempo com as publicações de quem segue. A base tem dezenas de milhões de usuários, alguns com milhões de seguidores.",
+    "requirements": "- Montar o feed com baixa latência na leitura.\n- Lidar com usuários \"celebridade\" (fan-out massivo).\n- Escalar escrita de publicações e leitura de feeds.\n- Tolerar falhas de componentes sem derrubar o feed."
+  },
+  {
+    "title": "Sistema Bancário Core",
+    "difficulty": "HARD",
+    "context": "Núcleo transacional de um banco digital: contas, transferências, extratos e antifraude. Milhões de contas ativas. Cada movimentação precisa ser atômica e auditável; não pode haver dinheiro perdido nem duplicado, sob nenhuma falha.",
+    "requirements": "- Transações ACID em todas as movimentações financeiras.\n- Auditoria imutável (ledger append-only).\n- Idempotência em todas as APIs públicas.\n- Recuperação a partir de falha sem perda e sem inconsistência.\n- Disponibilidade 24/7 com janelas de manutenção quase-zero.\n- Conformidade regulatória (KYC, AML, segregação de dados)."
+  },
+  {
+    "title": "ERP Multi-Módulo Corporativo",
+    "difficulty": "HARD",
+    "context": "ERP completo de grande porte com módulos integrados de Vendas, Compras, Estoque, Financeiro, RH e Produção. Cliente é uma multinacional, com filiais em vários países e operação contínua. Cada módulo é mantido por um time diferente.",
+    "requirements": "- Módulos independentes em desenvolvimento, mas com dados consistentes.\n- Multi-empresa, multi-idioma e multi-moeda.\n- Integração entre módulos sem acoplamento direto (eventos).\n- Migrações e upgrades sem parar a operação dos clientes.\n- Multi-tenant com isolamento de dados.\n- Auditoria e rastreabilidade de toda alteração de dados-mestres."
+  },
+  {
+    "title": "Plataforma de Pagamentos (estilo Stripe)",
+    "difficulty": "HARD",
+    "context": "Plataforma SaaS de processamento de pagamentos: lojistas integram via API para receber pagamentos de seus clientes finais. Milhões de transações por dia, em várias moedas e bandeiras. Falhas custam dinheiro e confiança.",
+    "requirements": "- Latência baixa no fluxo de authorize + capture (centenas de ms).\n- Conformidade PCI-DSS e isolamento de dados sensíveis (tokenização).\n- Detecção de fraude em tempo real.\n- Repasse aos lojistas em lote, com reconciliação automática.\n- Webhooks confiáveis para os lojistas (retry exponencial + DLQ).\n- Reconciliação com adquirentes e bandeiras (arquivos diários)."
+  },
+  {
+    "title": "Rideshare em Larga Escala",
+    "difficulty": "HARD",
+    "context": "Plataforma estilo Uber/99: passageiros pedem carros, motoristas aceitam, viagem é precificada e paga pelo app. Milhões de viagens diárias, com picos enormes em horários específicos e por cidade.",
+    "requirements": "- Matching motorista-passageiro em poucos segundos.\n- Localização ao vivo de milhões de motoristas.\n- Precificação dinâmica (surge) em janelas curtas, por região.\n- Roteamento e cálculo de ETA em mapas.\n- Pagamento ao final da viagem e repasse aos motoristas.\n- Resiliência regional: uma cidade fora não pode derrubar o resto."
+  }
+]
