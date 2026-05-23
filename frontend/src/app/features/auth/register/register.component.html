@@ -1,0 +1,51 @@
+<div class="auth-page">
+  <form class="auth-card" (ngSubmit)="submit()">
+    <div class="auth-brand"><span class="auth-logo">&lt;/&gt;</span> KeepCoding</div>
+    <h1 class="auth-title">Criar conta</h1>
+
+    <label class="auth-field">
+      <span>Username</span>
+      <input
+        type="text"
+        name="username"
+        autocomplete="username"
+        required
+        minlength="3"
+        [ngModel]="username()"
+        (ngModelChange)="username.set($event)" />
+    </label>
+
+    <label class="auth-field">
+      <span>E-mail</span>
+      <input
+        type="email"
+        name="email"
+        autocomplete="email"
+        required
+        [ngModel]="email()"
+        (ngModelChange)="email.set($event)" />
+    </label>
+
+    <label class="auth-field">
+      <span>Senha</span>
+      <input
+        type="password"
+        name="password"
+        autocomplete="new-password"
+        required
+        minlength="6"
+        [ngModel]="password()"
+        (ngModelChange)="password.set($event)" />
+    </label>
+
+    @if (error()) {
+      <p class="auth-error">{{ error() }}</p>
+    }
+
+    <button class="auth-btn" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Criando…' : 'Criar conta' }}
+    </button>
+
+    <p class="auth-alt">Já tem conta? <a routerLink="/login">Entrar</a></p>
+  </form>
+</div>
