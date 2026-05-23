@@ -1,0 +1,33 @@
+<div class="coach" [class.coach--loading]="loading()">
+  <div class="coach__avatar" aria-hidden="true">🤖</div>
+
+  <div class="coach__body">
+    <div class="coach__name">DevCoach</div>
+
+    @if (loading()) {
+      <div class="coach__bubble coach__bubble--thinking">
+        Analisando sua solução<span class="dots">…</span>
+      </div>
+    } @else {
+      @if (verdict(); as v) {
+        <div class="coach__bubble">
+          <span class="coach__badge" [class]="badgeClass()">{{ v.classification }}</span>
+          <p class="coach__headline">{{ v.headline }}</p>
+          <p class="coach__hint">{{ v.hint }}</p>
+
+          <div class="coach__metrics">
+            @for (m of v.metrics; track m.label) {
+              <span class="metric">{{ m.label }} <b>{{ m.value }}</b></span>
+            }
+            <span class="metric">Nota <b>{{ v.score }}/100</b></span>
+          </div>
+        </div>
+      } @else {
+        <div class="coach__bubble coach__bubble--idle">
+          Olá! Sou o DevCoach. Submeta e eu avalio a qualidade — com uma
+          classificação e uma dica para você evoluir.
+        </div>
+      }
+    }
+  </div>
+</div>

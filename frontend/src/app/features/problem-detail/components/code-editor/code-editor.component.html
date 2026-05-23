@@ -1,0 +1,55 @@
+<div class="editor">
+  <div class="editor__toolbar">
+    <span class="editor__title">Solução</span>
+    <div class="editor__langs">
+      <button
+        type="button"
+        class="lang-btn"
+        [class.lang-btn--active]="language() === 'java'"
+        (click)="selectLanguage('java')">
+        Java
+      </button>
+      <button
+        type="button"
+        class="lang-btn"
+        [class.lang-btn--active]="language() === 'typescript'"
+        (click)="selectLanguage('typescript')">
+        TypeScript
+      </button>
+    </div>
+  </div>
+
+  <!--
+    ============================================================
+    MOCK do editor Monaco (roda sem dependência externa).
+
+    Para usar o MONACO REAL:
+      1. npm install ngx-monaco-editor-v2 monaco-editor
+      2. Em app.config.ts adicione aos providers:
+           provideMonacoEditor()   // de 'ngx-monaco-editor-v2'
+      3. Importe o componente standalone do Monaco neste componente.
+      4. Substitua o <textarea> abaixo por:
+
+         <ngx-monaco-editor
+           class="editor__monaco"
+           [options]="monacoOptions"
+           [(ngModel)]="code">
+         </ngx-monaco-editor>
+
+    Nota: o pacote '@monaco-editor/angular' citado no enunciado pertence
+    ao ecossistema React. O equivalente no Angular é 'ngx-monaco-editor-v2'.
+    ============================================================
+  -->
+  <textarea
+    class="editor__textarea"
+    spellcheck="false"
+    [attr.data-lang]="language()"
+    [ngModel]="code()"
+    (ngModelChange)="code.set($event)">
+  </textarea>
+
+  <div class="editor__statusbar">
+    <span>{{ language() === 'java' ? 'Java 21' : 'TypeScript 5' }}</span>
+    <span>UTF-8</span>
+  </div>
+</div>

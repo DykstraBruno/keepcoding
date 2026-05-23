@@ -1,0 +1,74 @@
+@if (problem(); as p) {
+  <div class="workspace">
+
+    <!-- ==================== PAINEL ESQUERDO ==================== -->
+    <section class="panel panel--left">
+      <header class="problem-header">
+        <h1 class="problem-title">{{ p.title }}</h1>
+        <span class="difficulty" [class]="'difficulty--' + p.difficulty.toLowerCase()">
+          {{ p.difficulty }}
+        </span>
+      </header>
+
+      <article class="problem-description">{{ p.description }}</article>
+
+      <h2 class="section-title">Casos de teste de exemplo</h2>
+      @for (tc of sampleCases(); track tc.id) {
+        <div class="testcase">
+          <div class="testcase__row">
+            <span class="testcase__key">Entrada</span>
+            <pre class="testcase__val">{{ tc.input }}</pre>
+          </div>
+          <div class="testcase__row">
+            <span class="testcase__key">Saída</span>
+            <pre class="testcase__val">{{ tc.expectedOutput }}</pre>
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- ==================== PAINEL DIREITO ===================== -->
+    <section class="panel panel--right">
+      <app-code-editor
+        [language]="language()"
+        [(code)]="code"
+        (languageChange)="onLanguageChange($event)" />
+
+      <div class="action-bar">
+        <button
+          type="button"
+          class="btn-submit"
+          [disabled]="running()"
+          (click)="onSubmit()">
+          {{ running() ? 'Executando…' : 'Submeter' }}
+        </button>
+      </div>
+
+      <!-- Console de resultados -->
+      <div class="console">
+        @if (running()) {
+          <p class="console__msg">Rodando casos de teste no sandbox…</p>
+        } @else {
+          @if (result(); as r) {
+            <div class="console__verdict" [class]="'verdict--' + r.status.toLowerCase()">
+              <strong>{{ r.status }}</strong>
+              <span>{{ r.passedTests }} / {{ r.totalTests }} testes</span>
+            </div>
+          } @else {
+            <p class="console__msg console__msg--idle">
+              Submeta seu código para ver o veredito e o feedback do DevCoach.
+            </p>
+          }
+        }
+      </div>
+
+      <!-- DevCoach -->
+      <app-dev-coach [verdict]="coachVerdict()" [loading]="running()" />
+    </section>
+
+  </div>
+} @else if (loadError()) {
+  <p class="loading">Não foi possível carregar o problema. Verifique se o backend está rodando.</p>
+} @else {
+  <p class="loading">Carregando problema…</p>
+}
