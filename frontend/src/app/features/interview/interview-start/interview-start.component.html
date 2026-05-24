@@ -1,0 +1,63 @@
+<div class="page">
+  <header class="page-header">
+    <h1 class="page-title">Nova entrevista</h1>
+    <a routerLink="/interviews" class="back">← voltar</a>
+  </header>
+
+  <p class="hint">
+    Informe a vaga-alvo e cole seu currículo em texto. A IA vai personalizar as
+    perguntas com base no que você escreveu.
+  </p>
+
+  <form class="form" (ngSubmit)="start()">
+    <label class="field">
+      <span class="field__label">Vaga-alvo</span>
+      <input
+        class="field__input"
+        type="text"
+        placeholder="ex.: Backend Java Pleno, Engenheiro de Dados, Tech Lead Frontend…"
+        maxlength="255"
+        required
+        [ngModel]="targetRole()"
+        (ngModelChange)="targetRole.set($event)"
+        name="targetRole" />
+    </label>
+
+    <label class="field">
+      <span class="field__label">
+        Currículo (texto)
+        <small>mín. 50 caracteres · {{ resumeText().length }} digitados</small>
+      </span>
+      <textarea
+        class="field__textarea"
+        rows="14"
+        placeholder="Cole aqui experiências, projetos, tecnologias, formação… A IA vai usar isso para fazer perguntas focadas no seu perfil."
+        required
+        [ngModel]="resumeText()"
+        (ngModelChange)="resumeText.set($event)"
+        name="resumeText"></textarea>
+    </label>
+
+    <label class="field field--small">
+      <span class="field__label">Número de perguntas (3-12)</span>
+      <input
+        class="field__input"
+        type="number"
+        min="3"
+        max="12"
+        [ngModel]="maxQuestions()"
+        (ngModelChange)="maxQuestions.set($event)"
+        name="maxQuestions" />
+    </label>
+
+    @if (error()) {
+      <p class="form-error">{{ error() }}</p>
+    }
+
+    <div class="actions">
+      <button type="submit" class="btn-primary" [disabled]="!canSubmit()">
+        {{ starting() ? 'Iniciando…' : 'Iniciar entrevista' }}
+      </button>
+    </div>
+  </form>
+</div>

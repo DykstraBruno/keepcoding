@@ -1,0 +1,39 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Entrevistas</h1>
+      <p class="page-sub">Simule entrevistas personalizadas com base no seu currículo.</p>
+    </div>
+    <a routerLink="/interviews/new" class="btn-new">+ Nova entrevista</a>
+  </header>
+
+  @if (loading()) {
+    <p class="msg">Carregando…</p>
+  } @else if (error()) {
+    <p class="msg msg--error">Falha ao carregar suas entrevistas.</p>
+  } @else if (interviews().length === 0) {
+    <div class="empty">
+      <p>Você ainda não tem entrevistas.</p>
+      <a routerLink="/interviews/new" class="btn-new">Iniciar a primeira</a>
+    </div>
+  } @else {
+    <ul class="cards">
+      @for (interview of interviews(); track interview.id) {
+        <li>
+          <a class="card" [routerLink]="['/interviews', interview.id]">
+            <div class="card__top">
+              <span class="card__role">{{ interview.targetRole }}</span>
+              <span class="card__status" [class]="'card__status--' + interview.status.toLowerCase()">
+                {{ statusLabel(interview.status) }}
+              </span>
+            </div>
+            <div class="card__meta">
+              <span>{{ interview.questionsAnswered }} / {{ interview.totalQuestions }} respondidas</span>
+              <span>{{ interview.createdAt | date: 'short' }}</span>
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>

@@ -26,6 +26,12 @@ import { AuthService } from './services/auth.service';
             class="app-nav__link"
             >Arquitetura</a
           >
+          <a
+            routerLink="/interviews"
+            routerLinkActive="app-nav__link--active"
+            class="app-nav__link"
+            >Entrevistas</a
+          >
         </nav>
         <span class="app-spacer"></span>
         <span class="app-user">{{ user.username }} · {{ user.xp }} XP</span>

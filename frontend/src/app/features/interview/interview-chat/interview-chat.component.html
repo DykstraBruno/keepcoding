@@ -1,0 +1,91 @@
+<div class="page">
+  @if (loading()) {
+    <p class="msg">Carregando entrevista…</p>
+  } @else if (loadError()) {
+    <p class="msg msg--error">Não foi possível carregar a entrevista.</p>
+  } @else {
+    <header class="header">
+      <div>
+        <a routerLink="/interviews" class="back">← entrevistas</a>
+        <h1 class="header__title">{{ targetRole() }}</h1>
+      </div>
+      <span class="progress">
+        Pergunta {{ questionNumber() }} / {{ maxQuestions() }}
+      </span>
+    </header>
+
+    <div #scrollHost class="thread">
+      @for (msg of messages(); track msg.turnIndex) {
+        <article
+          class="bubble"
+          [class.bubble--interviewer]="msg.role === 'INTERVIEWER'"
+          [class.bubble--candidate]="msg.role === 'CANDIDATE'">
+          <header class="bubble__head">
+            <span class="bubble__who">
+              {{ msg.role === 'INTERVIEWER' ? '🤖 Entrevistador' : '🧑 Você' }}
+            </span>
+            <span class="bubble__time">{{ msg.createdAt | date: 'shortTime' }}</span>
+          </header>
+          <p class="bubble__content">{{ msg.content }}</p>
+        </article>
+      }
+
+      @if (sending()) {
+        <article class="bubble bubble--interviewer bubble--thinking">
+          <span class="dots">Entrevistador pensando…</span>
+        </article>
+      }
+    </div>
+
+    @if (active()) {
+      <form class="answer" (ngSubmit)="send()">
+        <textarea
+          class="answer__input"
+          rows="3"
+          placeholder="Sua resposta…"
+          [ngModel]="draft()"
+          (ngModelChange)="draft.set($event)"
+          name="answer"
+          [disabled]="sending()"></textarea>
+        <button type="submit" class="answer__send" [disabled]="!canSend()">
+          {{ sending() ? '…' : 'Enviar' }}
+        </button>
+      </form>
+    }
+
+    @if (feedback(); as f) {
+      <section class="feedback">
+        <header class="feedback__head">
+          <h2>Feedback final</h2>
+          <span class="feedback__badge" [class]="'feedback__badge--' + f.classification.toLowerCase()">
+            {{ f.classification }}
+          </span>
+        </header>
+        <p class="feedback__summary">{{ f.summary }}</p>
+
+        <div class="feedback__grid">
+          <div class="feedback__col">
+            <h3>Pontos fortes</h3>
+            <ul>
+              @for (s of f.strengths; track s) { <li>{{ s }}</li> }
+            </ul>
+          </div>
+          <div class="feedback__col">
+            <h3>Lacunas</h3>
+            <ul>
+              @for (g of f.gaps; track g) { <li>{{ g }}</li> }
+            </ul>
+          </div>
+          <div class="feedback__col">
+            <h3>Sugestões</h3>
+            <ul>
+              @for (s of f.suggestions; track s) { <li>{{ s }}</li> }
+            </ul>
+          </div>
+        </div>
+
+        <div class="feedback__score">Nota: <b>{{ f.score }}/100</b></div>
+      </section>
+    }
+  }
+</div>
