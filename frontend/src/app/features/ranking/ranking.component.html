@@ -1,0 +1,78 @@
+<div class="page">
+  <header class="page-header">
+    <h1 class="page-title">Ranking</h1>
+    <p class="page-sub">
+      @if (response(); as r) {
+        Top {{ r.top.length }} de {{ r.totalUsers }} jogadores · ordenado por XP
+      } @else {
+        Top jogadores do KeepCoding
+      }
+    </p>
+  </header>
+
+  @if (loading()) {
+    <p class="msg">Carregando ranking…</p>
+  } @else if (error()) {
+    <p class="msg msg--error">Falha ao carregar o ranking.</p>
+  } @else {
+    @if (response(); as r) {
+
+    <div class="table-wrap">
+      <table class="ranking">
+        <thead>
+          <tr>
+            <th class="th-pos sortable" (click)="toggleSort('position')">
+              # <span class="sort-ind">{{ sortIndicator('position') }}</span>
+            </th>
+            <th>Jogador</th>
+            <th class="th-num sortable" (click)="toggleSort('xp')">
+              XP <span class="sort-ind">{{ sortIndicator('xp') }}</span>
+            </th>
+            <th class="th-num sortable" (click)="toggleSort('easyCount')">
+              Fácil <span class="sort-ind">{{ sortIndicator('easyCount') }}</span>
+            </th>
+            <th class="th-num sortable" (click)="toggleSort('mediumCount')">
+              Médio <span class="sort-ind">{{ sortIndicator('mediumCount') }}</span>
+            </th>
+            <th class="th-num sortable" (click)="toggleSort('hardCount')">
+              Difícil <span class="sort-ind">{{ sortIndicator('hardCount') }}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of sortedTop(); track row.userId) {
+            <tr [class.row--me]="row.userId === myUserId()">
+              <td class="td-pos">
+                @if (row.position === 1) { 🥇 }
+                @else if (row.position === 2) { 🥈 }
+                @else if (row.position === 3) { 🥉 }
+                @else { {{ row.position }} }
+              </td>
+              <td class="td-user">{{ row.username }}</td>
+              <td class="td-num">{{ row.xp }}</td>
+              <td class="td-num">{{ row.easyCount }}</td>
+              <td class="td-num">{{ row.mediumCount }}</td>
+              <td class="td-num">{{ row.hardCount }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="empty">Ranking vazio.</td></tr>
+          }
+
+          @if (r.me; as me) {
+            <tr class="row--gap"><td colspan="6"></td></tr>
+            <tr class="row--me">
+              <td class="td-pos">{{ me.position }}</td>
+              <td class="td-user">{{ me.username }} <span class="me-tag">você</span></td>
+              <td class="td-num">{{ me.xp }}</td>
+              <td class="td-num">{{ me.easyCount }}</td>
+              <td class="td-num">{{ me.mediumCount }}</td>
+              <td class="td-num">{{ me.hardCount }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    }
+  }
+</div>

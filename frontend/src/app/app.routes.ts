@@ -6,6 +6,7 @@ import { InterviewStartComponent } from './features/interview/interview-start/in
 import { InterviewChatComponent } from './features/interview/interview-chat/interview-chat.component';
 import { MatchQueueComponent } from './features/match/match-queue/match-queue.component';
 import { MatchPlayComponent } from './features/match/match-play/match-play.component';
+import { RankingComponent } from './features/ranking/ranking.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { authGuard } from './guards/auth.guard';
@@ -23,6 +24,8 @@ export const routes: Routes = [
 
   { path: 'matches', component: MatchQueueComponent, canActivate: [authGuard] },
   { path: 'matches/:id', component: MatchPlayComponent, canActivate: [authGuard] },
+
+  { path: 'ranking', component: RankingComponent, canActivate: [authGuard] },
 
   // Lazy-load: a feature de arquitetura carrega o Mermaid (dependência pesada)
   // só quando o usuário acessa estas rotas, mantendo o bundle inicial enxuto.

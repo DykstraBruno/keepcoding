@@ -38,6 +38,12 @@ import { AuthService } from './services/auth.service';
             class="app-nav__link"
             >Duelos</a
           >
+          <a
+            routerLink="/ranking"
+            routerLinkActive="app-nav__link--active"
+            class="app-nav__link"
+            >Ranking</a
+          >
         </nav>
         <span class="app-spacer"></span>
         <span class="app-user">{{ user.username }} · {{ user.xp }} XP</span>

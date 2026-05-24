@@ -1,0 +1,123 @@
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.page-sub {
+  margin: 0.25rem 0 1.5rem;
+  color: var(--text-dim);
+}
+
+.msg {
+  color: var(--text-dim);
+}
+
+.msg--error {
+  color: var(--hard);
+}
+
+.table-wrap {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ranking {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.ranking th,
+.ranking td {
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.ranking thead th {
+  background: var(--panel-2);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+
+.ranking tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ranking tbody tr:hover {
+  background: rgba(79, 140, 255, 0.06);
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  color: var(--text);
+}
+
+.sort-ind {
+  color: var(--accent);
+}
+
+.th-pos,
+.td-pos {
+  width: 3.5rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.th-num,
+.td-num {
+  width: 6rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.td-user {
+  font-weight: 600;
+}
+
+.row--me {
+  background: rgba(79, 140, 255, 0.12);
+}
+
+.row--me:hover {
+  background: rgba(79, 140, 255, 0.18);
+}
+
+.row--gap td {
+  border: none;
+  padding: 0.4rem 0;
+  background: var(--panel-2);
+}
+
+.me-tag {
+  margin-left: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  background: rgba(79, 140, 255, 0.15);
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 2rem;
+}
