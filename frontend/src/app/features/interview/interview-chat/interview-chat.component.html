@@ -9,9 +9,22 @@
         <a routerLink="/interviews" class="back">← entrevistas</a>
         <h1 class="header__title">{{ targetRole() }}</h1>
       </div>
-      <span class="progress">
-        Pergunta {{ questionNumber() }} / {{ maxQuestions() }}
-      </span>
+      <div class="header__right">
+        <span class="phase" [class]="'phase--' + phase().toLowerCase()">
+          {{ phaseLabel() }}
+        </span>
+        <div class="timer" [class.timer--overtime]="overtime()">
+          <span class="timer__label">Tempo</span>
+          <span class="timer__value">{{ elapsedLabel() }} / 40:00</span>
+          <span class="timer__remaining">
+            @if (overtime()) {
+              ⚠ +{{ elapsedLabel() }} acima do orçamento
+            } @else {
+              restam {{ remainingLabel() }}
+            }
+          </span>
+        </div>
+      </div>
     </header>
 
     <div #scrollHost class="thread">
@@ -42,7 +55,7 @@
         <textarea
           class="answer__input"
           rows="3"
-          placeholder="Sua resposta…"
+          [placeholder]="phase() === 'PRESENTATION' ? 'Sua apresentação (até 10 min)…' : 'Sua resposta (~4 min)…'"
           [ngModel]="draft()"
           (ngModelChange)="draft.set($event)"
           name="answer"

@@ -9,6 +9,14 @@
     perguntas com base no que você escreveu.
   </p>
 
+  <div class="format">
+    <strong>Formato padrão da indústria · 40 minutos</strong>
+    <ul>
+      <li>🎤 <b>10 min</b> de apresentação (você se apresenta)</li>
+      <li>❓ <b>30 min</b> de perguntas — ~4 min por par pergunta+resposta</li>
+    </ul>
+  </div>
+
   <form class="form" (ngSubmit)="start()">
     <label class="field">
       <span class="field__label">Vaga-alvo</span>
@@ -39,12 +47,15 @@
     </label>
 
     <label class="field field--small">
-      <span class="field__label">Número de perguntas (3-12)</span>
+      <span class="field__label">
+        Número de perguntas no bloco de Q&A (4-10)
+        <small>padrão 7 → ~28 min · não conta a apresentação</small>
+      </span>
       <input
         class="field__input"
         type="number"
-        min="3"
-        max="12"
+        min="4"
+        max="10"
         [ngModel]="maxQuestions()"
         (ngModelChange)="maxQuestions.set($event)"
         name="maxQuestions" />

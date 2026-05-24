@@ -16,7 +16,8 @@ export class InterviewStartComponent {
 
   readonly targetRole = signal('');
   readonly resumeText = signal('');
-  readonly maxQuestions = signal(6);
+  /** Padrão 7 perguntas: 30 min de Q&A / 4 min cada ≈ 7. */
+  readonly maxQuestions = signal(7);
   readonly starting = signal(false);
   readonly error = signal<string | null>(null);
 

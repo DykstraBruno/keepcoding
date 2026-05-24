@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keepcoding.domain.Interview;
 import com.keepcoding.domain.InterviewMessage;
 import com.keepcoding.domain.User;
+import com.keepcoding.domain.enums.InterviewPhase;
 import com.keepcoding.domain.enums.InterviewStatus;
 import com.keepcoding.domain.enums.MessageRole;
 import com.keepcoding.dto.*;
@@ -21,20 +22,28 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Orquestra o ciclo de vida de uma entrevista:
- *  - start   : valida currículo, cria a sessão e pede a 1ª pergunta à IA;
- *  - answer  : registra a resposta do candidato, pede a próxima pergunta
- *              ou encerra com o feedback final;
- *  - list/get: leitura para o frontend.
+ * Orquestra o ciclo de uma entrevista no formato padrão da indústria:
+ * 40 minutos = 10 min de apresentação + 30 min de perguntas
+ * (~4 min por par pergunta+resposta → ~7 perguntas).
+ *
+ * Fluxo:
+ *  - start   : cria a sessão e o entrevistador pede a APRESENTAÇÃO.
+ *  - answer  : registra a resposta. Se ainda dentro do bloco, pede a
+ *              próxima pergunta; senão encerra e devolve o feedback.
+ *  - list/get: leitura.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class InterviewService {
 
-    static final int DEFAULT_MAX_QUESTIONS = 6;
-    static final int MIN_QUESTIONS = 3;
-    static final int MAX_QUESTIONS_LIMIT = 12;
+    /** Perguntas no bloco de Q&A (não conta a apresentação). 30 min / 4 min ≈ 7. */
+    static final int DEFAULT_MAX_QUESTIONS = 7;
+    static final int MIN_QUESTIONS = 4;
+    static final int MAX_QUESTIONS_LIMIT = 10;
+
+    /** 1 turno extra do candidato é reservado para a apresentação inicial. */
+    private static final int PRESENTATION_TURNS = 1;
 
     private final UserRepository userRepository;
     private final InterviewRepository interviewRepository;
@@ -59,21 +68,22 @@ public class InterviewService {
                 .status(InterviewStatus.IN_PROGRESS)
                 .build());
 
-        // Pede a primeira pergunta (history vazio).
-        String firstQuestion = interviewerAiService.nextQuestion(interview, List.of());
+        // 1ª mensagem do entrevistador = saudação + pedido de apresentação.
+        String firstMessage = interviewerAiService.nextQuestion(interview, List.of());
         messageRepository.save(InterviewMessage.builder()
                 .interview(interview)
                 .role(MessageRole.INTERVIEWER)
                 .turnIndex(0)
-                .content(firstQuestion)
+                .content(firstMessage)
                 .build());
 
         return new InterviewTurnResponse(
                 interview.getId(),
                 interview.getStatus(),
+                InterviewPhase.PRESENTATION,
                 1,
                 max,
-                firstQuestion,
+                firstMessage,
                 false,
                 null);
     }
@@ -97,11 +107,13 @@ public class InterviewService {
                 .build());
         history.add(answer);
 
-        long questionsAsked = history.stream().filter(m -> m.getRole() == MessageRole.INTERVIEWER).count();
-        long answersGiven  = history.stream().filter(m -> m.getRole() == MessageRole.CANDIDATE).count();
+        long answersGiven = history.stream()
+                .filter(m -> m.getRole() == MessageRole.CANDIDATE)
+                .count();
+        int totalCandidateTurns = interview.getMaxQuestions() + PRESENTATION_TURNS;
 
-        // 2) Atingiu o limite de respostas? Encerra a entrevista com feedback final.
-        if (answersGiven >= interview.getMaxQuestions()) {
+        // 2) Última resposta esperada? Encerra com feedback final.
+        if (answersGiven >= totalCandidateTurns) {
             InterviewFeedback feedback = interviewerAiService.produceFeedback(interview, history);
             interview.setFinalFeedbackJson(toJson(feedback));
             interview.setStatus(InterviewStatus.COMPLETED);
@@ -111,14 +123,15 @@ public class InterviewService {
             return new InterviewTurnResponse(
                     interview.getId(),
                     interview.getStatus(),
-                    (int) questionsAsked,
+                    InterviewPhase.COMPLETED,
+                    interview.getMaxQuestions(),
                     interview.getMaxQuestions(),
                     null,
                     true,
                     feedback);
         }
 
-        // 3) Caso contrário, pede a próxima pergunta à IA.
+        // 3) Próxima pergunta do bloco.
         String nextQuestion = interviewerAiService.nextQuestion(interview, history);
         messageRepository.save(InterviewMessage.builder()
                 .interview(interview)
@@ -127,10 +140,15 @@ public class InterviewService {
                 .content(nextQuestion)
                 .build());
 
+        // Após a resposta de apresentação, entramos na fase de perguntas.
+        // questionNumber dentro de QUESTIONS = answersGiven (já contando a apresentação).
+        // Ex.: após responder apresentação (answersGiven=1) → fazendo Q1.
+        int questionNumberInQuestions = (int) answersGiven;
         return new InterviewTurnResponse(
                 interview.getId(),
                 interview.getStatus(),
-                (int) questionsAsked + 1,
+                InterviewPhase.QUESTIONS,
+                questionNumberInQuestions,
                 interview.getMaxQuestions(),
                 nextQuestion,
                 false,
@@ -167,11 +185,14 @@ public class InterviewService {
                         m.getRole(), m.getTurnIndex(), m.getContent(), m.getCreatedAt()))
                 .toList();
 
+        InterviewPhase phase = computePhase(interview, messages);
+
         return new InterviewDetail(
                 interview.getId(),
                 interview.getTargetRole(),
                 interview.getResumeText(),
                 interview.getStatus(),
+                phase,
                 interview.getMaxQuestions(),
                 messages,
                 fromJson(interview.getFinalFeedbackJson()),
@@ -180,6 +201,16 @@ public class InterviewService {
     }
 
     // ---------------------------------------------------------------- helpers
+    private InterviewPhase computePhase(Interview interview, List<InterviewMessageView> messages) {
+        if (interview.getStatus() == InterviewStatus.COMPLETED) {
+            return InterviewPhase.COMPLETED;
+        }
+        long answersGiven = messages.stream()
+                .filter(m -> m.role() == MessageRole.CANDIDATE).count();
+        // 0 respostas = ainda na apresentação (entrevistador acabou de pedir).
+        return answersGiven == 0 ? InterviewPhase.PRESENTATION : InterviewPhase.QUESTIONS;
+    }
+
     private Interview loadOwned(Long id, String userEmail) {
         Interview interview = interviewRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entrevista não encontrada: " + id));

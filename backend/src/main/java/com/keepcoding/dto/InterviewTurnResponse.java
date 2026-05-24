@@ -1,5 +1,6 @@
 package com.keepcoding.dto;
 
+import com.keepcoding.domain.enums.InterviewPhase;
 import com.keepcoding.domain.enums.InterviewStatus;
 
 /**
@@ -9,11 +10,13 @@ import com.keepcoding.domain.enums.InterviewStatus;
 public record InterviewTurnResponse(
         Long interviewId,
         InterviewStatus status,
-        /** Número da pergunta atual (1-indexed). */
+        /** Fase atual: PRESENTATION (apresentação), QUESTIONS (bloco de perguntas) ou COMPLETED. */
+        InterviewPhase phase,
+        /** Número da pergunta atual dentro do bloco (1-indexed); 1 também na apresentação. */
         Integer questionNumber,
-        /** Total de perguntas planejado para a sessão. */
+        /** Total de perguntas planejado para o bloco de Q&A (não inclui a apresentação). */
         Integer totalQuestions,
-        /** Próxima pergunta a ser exibida ao candidato; null quando finalizada. */
+        /** Próxima mensagem do entrevistador; null quando finalizada. */
         String nextQuestion,
         /** true quando a entrevista foi encerrada nesta chamada. */
         boolean finished,

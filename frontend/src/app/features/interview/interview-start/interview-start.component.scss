@@ -27,8 +27,31 @@
 }
 
 .hint {
-  margin: 0 0 1.5rem;
+  margin: 0 0 1rem;
   color: var(--text-dim);
+}
+
+.format {
+  margin: 0 0 1.5rem;
+  padding: 0.8rem 1rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  font-size: 0.88rem;
+}
+
+.format strong {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--text);
+}
+
+.format ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--text-dim);
+  line-height: 1.5;
 }
 
 .form {

@@ -1,5 +1,6 @@
 package com.keepcoding.dto;
 
+import com.keepcoding.domain.enums.InterviewPhase;
 import com.keepcoding.domain.enums.InterviewStatus;
 
 import java.time.Instant;
@@ -11,6 +12,7 @@ public record InterviewDetail(
         String targetRole,
         String resumeText,
         InterviewStatus status,
+        InterviewPhase phase,
         Integer maxQuestions,
         List<InterviewMessageView> messages,
         InterviewFeedback feedback,

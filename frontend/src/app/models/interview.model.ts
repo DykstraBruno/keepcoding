@@ -2,6 +2,11 @@ export type InterviewStatus = 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED';
 
 export type MessageRole = 'INTERVIEWER' | 'CANDIDATE';
 
+/**
+ * Fase atual da entrevista (formato padrão: 10 min apresentação + 30 min perguntas).
+ */
+export type InterviewPhase = 'PRESENTATION' | 'QUESTIONS' | 'COMPLETED';
+
 /** Feedback final estruturado da IA (espelha o backend). */
 export interface InterviewFeedback {
   classification: string;
@@ -16,6 +21,7 @@ export interface InterviewFeedback {
 export interface InterviewTurnResponse {
   interviewId: number;
   status: InterviewStatus;
+  phase: InterviewPhase;
   questionNumber: number;
   totalQuestions: number;
   nextQuestion: string | null;
@@ -48,6 +54,7 @@ export interface InterviewDetail {
   targetRole: string;
   resumeText: string;
   status: InterviewStatus;
+  phase: InterviewPhase;
   maxQuestions: number;
   messages: InterviewMessageView[];
   feedback: InterviewFeedback | null;

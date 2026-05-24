@@ -47,7 +47,7 @@ public class Interview {
     /** Quantidade máxima de perguntas planejadas para esta sessão. */
     @Column(name = "max_questions", nullable = false)
     @Builder.Default
-    private Integer maxQuestions = 6;
+    private Integer maxQuestions = 7;
 
     /** Feedback final do entrevistador, em JSON. Preenchido ao concluir. */
     @JdbcTypeCode(SqlTypes.JSON)
