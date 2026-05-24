@@ -1,0 +1,88 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Duelo</h1>
+      <p class="page-sub">Desafio em tempo real contra outro candidato. Primeiro a passar todos os testes vence.</p>
+    </div>
+  </header>
+
+  <section class="picker">
+    <h2 class="picker-title">Escolha a dificuldade</h2>
+
+    <div class="picker-grid">
+      <button
+        type="button"
+        class="picker-card picker-card--easy"
+        [disabled]="searching()"
+        (click)="startSearch('EASY')">
+        <span class="picker-card__label">Fácil</span>
+        <span class="picker-card__xp">+8 XP no acerto</span>
+      </button>
+      <button
+        type="button"
+        class="picker-card picker-card--medium"
+        [disabled]="searching()"
+        (click)="startSearch('MEDIUM')">
+        <span class="picker-card__label">Médio</span>
+        <span class="picker-card__xp">+12 XP no acerto</span>
+      </button>
+      <button
+        type="button"
+        class="picker-card picker-card--hard"
+        [disabled]="searching()"
+        (click)="startSearch('HARD')">
+        <span class="picker-card__label">Difícil</span>
+        <span class="picker-card__xp">+16 XP no acerto</span>
+      </button>
+    </div>
+
+    @if (statusMsg()) {
+      <div class="status">
+        <span class="status__msg">{{ statusMsg() }}</span>
+        @if (searching()) {
+          <button type="button" class="status__cancel" (click)="cancel()">Cancelar</button>
+        }
+      </div>
+    }
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <p class="warning">
+      ⚠ Ao encontrar partida você será obrigado a entrar em <b>tela cheia</b>.
+      Sair de fullscreen, trocar de aba ou ter múltiplos monitores conectados =
+      derrota imediata.
+    </p>
+  </section>
+
+  <section class="history">
+    <h2 class="history-title">Histórico</h2>
+    @if (history().length === 0) {
+      <p class="empty">Ainda sem partidas. Procure um oponente acima.</p>
+    } @else {
+      <ul class="history-list">
+        @for (m of history(); track m.matchId) {
+          <li>
+            <a class="history-item" [routerLink]="['/matches', m.matchId]">
+              <span class="history-item__left">
+                <span class="history-item__role">{{ m.problem.title }}</span>
+                <span class="history-item__meta">
+                  [{{ m.difficulty }}] · {{ m.player1.username }} vs {{ m.player2.username }}
+                </span>
+              </span>
+              <span class="history-item__right">
+                <span class="history-item__status" [class]="'history-item__status--' + m.status.toLowerCase()">
+                  @if (m.status === 'ACTIVE') { Em andamento }
+                  @else if (m.status === 'COMPLETED') { Vencedor: {{ m.winner?.username }} }
+                  @else { Forfeit: {{ m.winner?.username }} }
+                </span>
+                <span class="history-item__date">{{ m.startedAt | date: 'short' }}</span>
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</div>

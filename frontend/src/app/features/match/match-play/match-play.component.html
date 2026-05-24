@@ -1,0 +1,129 @@
+<div class="page">
+  @if (loadError()) {
+    <p class="msg msg--error">Não foi possível carregar a partida.</p>
+  } @else if (!loaded()) {
+    <p class="msg">Carregando partida…</p>
+  } @else {
+
+    <!-- ============================ PREFLIGHT ============================ -->
+    @if (phase() === 'PREFLIGHT' && match()!.status === 'ACTIVE') {
+      <section class="preflight">
+        <h1>Duelo encontrado</h1>
+        <p class="preflight-sub">
+          Você vs <b>{{ opponentName() }}</b> · {{ match()!.difficulty }} ·
+          problema <b>{{ match()!.problem.title }}</b>
+        </p>
+
+        <ul class="rules">
+          <li>🖥 Apenas <b>1 monitor</b> conectado (você concederá a permissão).</li>
+          <li>🪟 O desafio abre em <b>tela cheia</b>.</li>
+          <li>🚫 Sair de fullscreen, trocar de aba ou perder foco = <b>derrota imediata</b>.</li>
+          <li>🏆 Primeiro a passar todos os testes <b>vence</b>.</li>
+        </ul>
+
+        @if (preflightError()) {
+          <p class="preflight-error">{{ preflightError() }}</p>
+        }
+
+        <div class="preflight-actions">
+          <a routerLink="/matches" class="link-secondary">Voltar</a>
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="checking()"
+            (click)="startPreflight()">
+            {{ checking() ? 'Verificando…' : 'Estou pronto, iniciar' }}
+          </button>
+        </div>
+      </section>
+    }
+
+    <!-- ============================ PLAYING ============================ -->
+    @if (phase() === 'PLAYING') {
+      <div class="play">
+        <header class="play-header">
+          <div>
+            <span class="play-difficulty" [class]="'play-difficulty--' + match()!.difficulty.toLowerCase()">
+              {{ match()!.difficulty }}
+            </span>
+            <h1 class="play-title">{{ match()!.problem.title }}</h1>
+          </div>
+          <div class="play-opponent">
+            <span class="play-opponent__label">Oponente</span>
+            <span class="play-opponent__name">{{ opponentName() }}</span>
+            <button type="button" class="play-giveup" (click)="giveUp()">Desistir</button>
+          </div>
+        </header>
+
+        <div class="play-body">
+          <section class="play-problem">
+            <article class="play-description">{{ match()!.problem.description }}</article>
+
+            @if (match()!.problem.testCases.length > 0) {
+              <h2 class="play-section-title">Casos de teste</h2>
+              @for (tc of match()!.problem.testCases; track tc.id) {
+                <div class="play-tc">
+                  <pre class="play-tc__in">{{ tc.input }}</pre>
+                  <pre class="play-tc__out">{{ tc.expectedOutput }}</pre>
+                </div>
+              }
+            }
+          </section>
+
+          <section class="play-editor">
+            <app-code-editor
+              [language]="language()"
+              [(code)]="code"
+              (languageChange)="language.set($event)" />
+
+            <div class="play-actions">
+              <button
+                type="button"
+                class="btn-primary"
+                [disabled]="running()"
+                (click)="submit()">
+                {{ running() ? 'Executando…' : 'Submeter' }}
+              </button>
+            </div>
+
+            @if (lastEvent(); as e) {
+              <div class="play-event" [class]="'play-event--' + e.type.toLowerCase()">
+                @if (e.type === 'SUBMISSION') {
+                  <b>{{ e.actor?.username }}</b> submeteu:
+                  {{ e.result }} ({{ e.passedTests }}/{{ e.totalTests }})
+                } @else if (e.type === 'WIN') {
+                  🏆 <b>{{ e.winner?.username }}</b> venceu.
+                } @else if (e.type === 'FORFEIT') {
+                  ⚠ <b>{{ e.actor?.username }}</b> forfeitou ({{ e.forfeitReason }}).
+                }
+              </div>
+            }
+          </section>
+        </div>
+      </div>
+    }
+
+    <!-- ============================== ENDED ============================== -->
+    @if (phase() === 'ENDED') {
+      <section class="ended">
+        <h1 [class.ended--win]="amIWinner()" [class.ended--loss]="!amIWinner()">
+          {{ amIWinner() ? '🏆 Vitória!' : '💀 Derrota' }}
+        </h1>
+        <p class="ended-msg">{{ endMessage() }}</p>
+
+        <div class="ended-meta">
+          <span>Problema: <b>{{ match()!.problem.title }}</b> ({{ match()!.difficulty }})</span>
+          <span>Você vs <b>{{ opponentName() }}</b></span>
+          @if (match()!.winner) {
+            <span>Vencedor: <b>{{ match()!.winner!.username }}</b></span>
+          }
+        </div>
+
+        <div class="ended-actions">
+          <a routerLink="/matches" class="btn-primary">Nova partida</a>
+          <a routerLink="/" class="link-secondary">Dashboard</a>
+        </div>
+      </section>
+    }
+  }
+</div>
