@@ -49,10 +49,32 @@ public class Judge0Service {
         int total = problem.getTestCases().size();
 
         // ----------------------------- SIMULACAO -----------------------------
-        // Heuristica trivial: codigo vazio falha; caso contrario, assume sucesso.
-        // Substituir por veredito real do Judge0.
+        // Sem Judge0 real, aplicamos heurísticas simples para evitar que
+        // qualquer código vazio/trivial seja marcado como ACCEPTED.
+        // Substituir tudo isso pela chamada real ao Judge0 quando integrado.
         if (code == null || code.isBlank()) {
             return new ExecutionResult(SubmissionStatus.ERROR, 0, total, "", "Codigo vazio");
+        }
+        String trimmed = code.trim();
+        if (trimmed.length() < 40) {
+            return new ExecutionResult(SubmissionStatus.WRONG_ANSWER, 0, total,
+                    "", "Solucao curta demais para ser uma resposta (mock).");
+        }
+        boolean hasLogicMarker =
+                   trimmed.contains("return")
+                || trimmed.contains("def ")
+                || trimmed.contains("function")
+                || trimmed.contains("fn ")
+                || trimmed.contains("void ")
+                || trimmed.contains("public ")
+                || trimmed.contains("=>")
+                || trimmed.contains("->")
+                || trimmed.contains("for ")
+                || trimmed.contains("while ")
+                || trimmed.contains("if ");
+        if (!hasLogicMarker) {
+            return new ExecutionResult(SubmissionStatus.WRONG_ANSWER, 0, total,
+                    "", "Codigo nao parece ter logica de solucao (mock).");
         }
         return new ExecutionResult(
                 SubmissionStatus.ACCEPTED, total, total,

@@ -12,6 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.4rem 0.75rem;
   background: var(--panel-2);
   border-bottom: 1px solid var(--border);
@@ -25,30 +26,61 @@
   letter-spacing: 0.5px;
 }
 
-.editor__langs {
+.editor__right {
   display: flex;
-  gap: 0.25rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.lang-btn {
-  padding: 0.3rem 0.7rem;
-  font-size: 0.8rem;
-  color: var(--text-dim);
-  background: transparent;
-  border: 1px solid transparent;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.lang-select {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: #1e1e1e;
+  border: 1px solid var(--border);
   border-radius: 5px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  min-width: 9rem;
 }
 
-.lang-btn:hover {
+.lang-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.lang-select option {
+  background: #1e1e1e;
   color: var(--text);
 }
 
-.lang-btn--active {
-  color: #fff;
-  background: var(--accent);
+.docs-link {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.docs-link:hover {
   border-color: var(--accent);
+  color: var(--accent);
 }
 
 .editor__textarea {

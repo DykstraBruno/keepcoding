@@ -1,21 +1,18 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { CodeEditorComponent, EditorLanguage } from '../../problem-detail/components/code-editor/code-editor.component';
+import { CodeEditorComponent } from '../../problem-detail/components/code-editor/code-editor.component';
 import { AuthService } from '../../../services/auth.service';
 import { MatchService } from '../../../services/match.service';
 import { MatchWsService } from '../../../services/match-ws.service';
 import { MatchEvent, MatchState } from '../../../models/match.model';
+import {
+  DEFAULT_EDITOR_LANGUAGE,
+  EditorLanguage,
+  metaFor,
+} from '../../../data/languages.catalog';
 
 type Phase = 'PREFLIGHT' | 'PLAYING' | 'ENDED';
-
-const STARTER_CODE: Record<EditorLanguage, string> = {
-  java: `public class Solution {
-    // Resolva o problema aqui
-}`,
-  typescript: `// Resolva o problema aqui
-`,
-};
 
 /**
  * Tela do duelo em tempo real com anti-cheat:
@@ -57,8 +54,8 @@ export class MatchPlayComponent implements OnInit, OnDestroy {
   readonly loadError = signal(false);
 
   readonly match = signal<MatchState | null>(null);
-  readonly language = signal<EditorLanguage>('java');
-  readonly code = signal<string>(STARTER_CODE.java);
+  readonly language = signal<EditorLanguage>(DEFAULT_EDITOR_LANGUAGE);
+  readonly code = signal<string>(metaFor(DEFAULT_EDITOR_LANGUAGE).starter);
   readonly running = signal(false);
   readonly lastEvent = signal<MatchEvent | null>(null);
   readonly violationReason = signal<string | null>(null);
@@ -154,7 +151,7 @@ export class MatchPlayComponent implements OnInit, OnDestroy {
     this.running.set(true);
     this.service
       .submit(this.matchId, {
-        language: this.language().toUpperCase() as 'JAVA' | 'TYPESCRIPT',
+        language: metaFor(this.language()).api,
         code: this.code(),
       })
       .subscribe({

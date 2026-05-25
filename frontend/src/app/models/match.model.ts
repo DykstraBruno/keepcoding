@@ -1,5 +1,5 @@
 import { Difficulty, Problem } from './problem.model';
-import { SubmissionStatus } from './submission.model';
+import { Language, SubmissionStatus } from './submission.model';
 
 export type MatchStatus = 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
 
@@ -51,6 +51,6 @@ export interface MatchEvent {
 
 /** Payload de POST /api/matches/{id}/submit. */
 export interface MatchSubmitRequest {
-  language: 'JAVA' | 'TYPESCRIPT';
+  language: Language;
   code: string;
 }

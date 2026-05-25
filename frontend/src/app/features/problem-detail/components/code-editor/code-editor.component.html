@@ -1,21 +1,28 @@
 <div class="editor">
   <div class="editor__toolbar">
     <span class="editor__title">Solução</span>
-    <div class="editor__langs">
-      <button
-        type="button"
-        class="lang-btn"
-        [class.lang-btn--active]="language() === 'java'"
-        (click)="selectLanguage('java')">
-        Java
-      </button>
-      <button
-        type="button"
-        class="lang-btn"
-        [class.lang-btn--active]="language() === 'typescript'"
-        (click)="selectLanguage('typescript')">
-        TypeScript
-      </button>
+
+    <div class="editor__right">
+      <label class="editor__lang">
+        <span class="visually-hidden">Linguagem</span>
+        <select
+          class="lang-select"
+          [ngModel]="language()"
+          (ngModelChange)="onLanguageSelect($event)">
+          @for (l of catalog; track l.id) {
+            <option [value]="l.id">{{ l.label }}</option>
+          }
+        </select>
+      </label>
+
+      <a
+        class="docs-link"
+        [href]="currentMeta().docsUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        [title]="'Abrir documentação oficial de ' + currentMeta().label">
+        📖 Docs
+      </a>
     </div>
   </div>
 
@@ -35,9 +42,6 @@
            [options]="monacoOptions"
            [(ngModel)]="code">
          </ngx-monaco-editor>
-
-    Nota: o pacote '@monaco-editor/angular' citado no enunciado pertence
-    ao ecossistema React. O equivalente no Angular é 'ngx-monaco-editor-v2'.
     ============================================================
   -->
   <textarea
@@ -49,7 +53,7 @@
   </textarea>
 
   <div class="editor__statusbar">
-    <span>{{ language() === 'java' ? 'Java 21' : 'TypeScript 5' }}</span>
+    <span>{{ currentMeta().label }}</span>
     <span>UTF-8</span>
   </div>
 </div>

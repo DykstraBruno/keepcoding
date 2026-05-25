@@ -1,22 +1,18 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CodeEditorComponent, EditorLanguage } from './components/code-editor/code-editor.component';
+import { CodeEditorComponent } from './components/code-editor/code-editor.component';
 import { DevCoachComponent } from './components/dev-coach/dev-coach.component';
 import { ProblemService } from '../../services/problem.service';
 import { SubmissionService } from '../../services/submission.service';
 import { AuthService } from '../../services/auth.service';
 import { Problem } from '../../models/problem.model';
 import { CoachVerdict } from '../../models/coach.model';
-import { Language, SubmissionResponse } from '../../models/submission.model';
-
-/** Código inicial sugerido para cada linguagem. */
-const STARTER_CODE: Record<EditorLanguage, string> = {
-  java: `public class Solution {
-    // Escreva sua solução em Java
-}`,
-  typescript: `// Escreva sua solução em TypeScript
-`,
-};
+import { SubmissionResponse } from '../../models/submission.model';
+import {
+  DEFAULT_EDITOR_LANGUAGE,
+  EditorLanguage,
+  metaFor,
+} from '../../data/languages.catalog';
 
 /**
  * Tela do desafio. Layout dividido:
@@ -37,8 +33,8 @@ export class ProblemDetailComponent implements OnInit {
 
   // ---- Estado reativo (signals) ----
   readonly problem = signal<Problem | null>(null);
-  readonly language = signal<EditorLanguage>('java');
-  readonly code = signal<string>(STARTER_CODE['java']);
+  readonly language = signal<EditorLanguage>(DEFAULT_EDITOR_LANGUAGE);
+  readonly code = signal<string>(metaFor(DEFAULT_EDITOR_LANGUAGE).starter);
   readonly running = signal<boolean>(false);
   readonly result = signal<SubmissionResponse | null>(null);
   readonly loadError = signal<boolean>(false);
@@ -76,7 +72,7 @@ export class ProblemDetailComponent implements OnInit {
   /** Troca de linguagem: reinicia o código-modelo e limpa o resultado. */
   onLanguageChange(lang: EditorLanguage): void {
     this.language.set(lang);
-    this.code.set(STARTER_CODE[lang]);
+    this.code.set(metaFor(lang).starter);
     this.result.set(null);
   }
 
@@ -93,7 +89,7 @@ export class ProblemDetailComponent implements OnInit {
     this.submissionService
       .submit({
         problemId: problem.id,
-        language: this.language().toUpperCase() as Language,
+        language: metaFor(this.language()).api,
         code: this.code(),
       })
       .subscribe({

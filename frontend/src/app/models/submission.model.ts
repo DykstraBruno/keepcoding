@@ -1,6 +1,8 @@
 import { CoachFeedback } from './coach.model';
+import type { ApiLanguage } from '../data/languages.catalog';
 
-export type Language = 'JAVA' | 'TYPESCRIPT';
+/** Identificador da linguagem enviada ao backend (derivado do catálogo). */
+export type Language = ApiLanguage;
 
 export type SubmissionStatus =
   | 'PENDING'
