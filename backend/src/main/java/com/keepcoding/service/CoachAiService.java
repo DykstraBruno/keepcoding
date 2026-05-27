@@ -3,6 +3,7 @@ package com.keepcoding.service;
 import com.keepcoding.domain.Problem;
 import com.keepcoding.domain.enums.Language;
 import com.keepcoding.dto.CoachFeedback;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
@@ -10,34 +11,39 @@ import org.springframework.stereotype.Service;
 /**
  * DevCoach: avalia a QUALIDADE de uma solucao usando Spring AI.
  *
- * <p>Inspirado no "Coach" do Chess.com: em vez de so dizer passou/falhou,
- * classifica a solucao (Brilhante, Otimo, Livro, Incompleto, Gafe), da uma
- * dica socratica e calcula a complexidade Big O.</p>
+ * <p>Inspirado no "Coach" do Chess.com: em vez de só dizer passou/falhou,
+ * classifica a solução (Brilhante, Ótimo, Livro, Incompleto, Gafe), dá uma
+ * dica socrática e calcula a complexidade Big O.</p>
  *
- * <p>Se a API de IA estiver indisponivel (ex.: sem OPENAI_API_KEY), retorna
- * um feedback de fallback para o fluxo nao quebrar em desenvolvimento.</p>
+ * <p>BYOK: a chave OpenAI vem do usuário (header {@code X-OpenAI-Key}).
+ * Se não houver chave nem do usuário nem na configuração global, devolve
+ * um feedback de fallback para o fluxo não quebrar em desenvolvimento.</p>
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CoachAiService {
 
-    private final ChatClient chatClient;
-
-    public CoachAiService(ChatClient.Builder builder) {
-        this.chatClient = builder.defaultSystem(SYSTEM_PROMPT).build();
-    }
+    private final UserScopedChatClientFactory chatClientFactory;
 
     /**
-     * Analisa o codigo submetido e produz o feedback do DevCoach.
+     * Analisa o código submetido e produz o feedback do DevCoach.
      *
-     * @param accepted true se a submissao passou em todos os testes
+     * @param accepted     true se a submissão passou em todos os testes
+     * @param userApiKey   chave OpenAI do usuário (pode ser null/blank)
      */
-    public CoachFeedback analyze(Problem problem, Language language, String code, boolean accepted) {
+    public CoachFeedback analyze(Problem problem, Language language, String code,
+                                 boolean accepted, String userApiKey) {
+        ChatClient chatClient = chatClientFactory.forApiKey(userApiKey);
+        if (chatClient == null) {
+            return fallback(accepted);
+        }
+
         String verdict = accepted
                 ? "ACEITO - passou em todos os casos de teste"
                 : "REPROVADO - falhou em um ou mais casos de teste";
 
-        // O codigo do aluno e injetado por concatenacao (NUNCA via template):
+        // O código do aluno é injetado por concatenação (NUNCA via template):
         // chaves { } presentes em Java/TS quebrariam o template engine do Spring AI.
         String userMessage = """
                 Problema: %s
@@ -59,6 +65,7 @@ public class CoachAiService {
 
         try {
             CoachFeedback feedback = chatClient.prompt()
+                    .system(SYSTEM_PROMPT)
                     .user(userMessage)
                     .call()
                     .entity(CoachFeedback.class);
@@ -66,24 +73,24 @@ public class CoachAiService {
                     feedback != null ? feedback.classification() : "null");
             return feedback != null ? feedback : fallback(accepted);
         } catch (Exception e) {
-            log.warn("DevCoach indisponivel ({}). Usando feedback de fallback.", e.getMessage());
+            log.warn("DevCoach indisponível ({}). Usando feedback de fallback.", e.getMessage());
             return fallback(accepted);
         }
     }
 
-    /** Feedback de contingencia quando a IA nao responde. */
+    /** Feedback de contingência quando a IA não responde. */
     private CoachFeedback fallback(boolean accepted) {
         return accepted
-                ? new CoachFeedback("Livro", "Solucao aceita!",
-                    "Configure OPENAI_API_KEY para receber a analise completa do DevCoach.",
+                ? new CoachFeedback("Livro", "Solução aceita!",
+                    "Configure sua chave OpenAI no app para receber a análise completa do DevCoach.",
                     "O(?)", "O(?)", 70)
-                : new CoachFeedback("Incompleto", "Ainda nao chegou la.",
-                    "Revise os casos de borda. Configure OPENAI_API_KEY para dicas detalhadas.",
+                : new CoachFeedback("Incompleto", "Ainda não chegou lá.",
+                    "Revise os casos de borda. Configure sua chave OpenAI para dicas detalhadas.",
                     "O(?)", "O(?)", 30);
     }
 
     // ------------------------------------------------------------------------
-    // System Prompt: define a persona, a escala de classificacao e o formato.
+    // System Prompt: define a persona, a escala de classificação e o formato.
     // ------------------------------------------------------------------------
     private static final String SYSTEM_PROMPT = """
             Voce e o "DevCoach", um treinador de programacao inspirado no Coach do Chess.com.

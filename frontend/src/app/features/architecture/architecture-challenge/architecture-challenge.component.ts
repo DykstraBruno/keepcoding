@@ -2,6 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ArchitectureService } from '../../../services/architecture.service';
+import { OpenAiKeyService } from '../../../services/openai-key.service';
+import { OpenAiKeyDialogService } from '../../../services/openai-key-dialog.service';
 import {
   ArchitectureChallenge,
   ArchitectureSubmissionResponse,
@@ -30,6 +32,9 @@ const STARTER_MERMAID = `graph TD
 export class ArchitectureChallengeComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly architectureService = inject(ArchitectureService);
+  private readonly openAiKey = inject(OpenAiKeyService);
+  private readonly keyDialog = inject(OpenAiKeyDialogService);
+  private promptedKey = false;
 
   readonly challenge = signal<ArchitectureChallenge | null>(null);
   readonly mermaidCode = signal<string>(STARTER_MERMAID);
@@ -64,10 +69,14 @@ export class ArchitectureChallengeComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     const challenge = this.challenge();
     if (!challenge || this.running()) {
       return;
+    }
+    if (!this.openAiKey.hasKey() && !this.promptedKey) {
+      this.promptedKey = true;
+      await this.keyDialog.requestKey();
     }
 
     this.running.set(true);

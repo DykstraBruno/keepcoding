@@ -26,9 +26,12 @@ public class SubmissionController {
     @PostMapping
     public ResponseEntity<SubmissionResponse> submit(
             @Valid @RequestBody SubmissionRequest request,
-            @AuthenticationPrincipal UserDetails principal) {
+            @AuthenticationPrincipal UserDetails principal,
+            @RequestHeader(value = "X-OpenAI-Key", required = false) String openAiKey) {
         // principal.getUsername() == e-mail do usuário autenticado (subject do JWT).
-        SubmissionResponse response = submissionService.submit(request, principal.getUsername());
+        // openAiKey: BYOK opcional vindo do header (frontend lê do localStorage).
+        SubmissionResponse response = submissionService.submit(
+                request, principal.getUsername(), openAiKey);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { InterviewService } from '../../../services/interview.service';
+import { OpenAiKeyService } from '../../../services/openai-key.service';
+import { OpenAiKeyDialogService } from '../../../services/openai-key-dialog.service';
 
 /** Tela inicial: candidato informa vaga + cola currículo e inicia a entrevista. */
 @Component({
@@ -13,6 +15,9 @@ import { InterviewService } from '../../../services/interview.service';
 export class InterviewStartComponent {
   private readonly interviewService = inject(InterviewService);
   private readonly router = inject(Router);
+  private readonly openAiKey = inject(OpenAiKeyService);
+  private readonly keyDialog = inject(OpenAiKeyDialogService);
+  private promptedKey = false;
 
   readonly targetRole = signal('');
   readonly resumeText = signal('');
@@ -29,9 +34,13 @@ export class InterviewStartComponent {
       this.resumeText().trim().length >= 50,
   );
 
-  start(): void {
+  async start(): Promise<void> {
     if (!this.canSubmit()) {
       return;
+    }
+    if (!this.openAiKey.hasKey() && !this.promptedKey) {
+      this.promptedKey = true;
+      await this.keyDialog.requestKey();
     }
     this.starting.set(true);
     this.error.set(null);

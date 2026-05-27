@@ -1,11 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { OpenAiKeyService } from './services/openai-key.service';
+import { OpenAiKeyDialogService } from './services/openai-key-dialog.service';
+import { OpenAiKeyDialogComponent } from './features/openai-key/openai-key-dialog.component';
 
 /** Shell da aplicação: cabeçalho com navegação + área roteada. */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, OpenAiKeyDialogComponent],
   template: `
     <header class="app-header">
       <span class="app-logo">&lt;/&gt;</span>
@@ -46,6 +49,14 @@ import { AuthService } from './services/auth.service';
           >
         </nav>
         <span class="app-spacer"></span>
+        <button
+          type="button"
+          class="app-key"
+          [class.app-key--set]="openAiKey.hasKey()"
+          (click)="keyDialog.open()"
+          [title]="openAiKey.hasKey() ? 'Chave OpenAI configurada — clique para atualizar' : 'Configurar chave OpenAI (BYOK)'">
+          🔑 {{ openAiKey.hasKey() ? 'OpenAI conectada' : 'Conectar OpenAI' }}
+        </button>
         <span class="app-user">{{ user.username }} · {{ user.xp }} XP</span>
         <button type="button" class="app-logout" (click)="auth.logout()">Sair</button>
       }
@@ -53,6 +64,8 @@ import { AuthService } from './services/auth.service';
     <main class="app-main">
       <router-outlet />
     </main>
+
+    <app-openai-key-dialog />
   `,
   styles: [
     `
@@ -113,6 +126,24 @@ import { AuthService } from './services/auth.service';
       .app-logout:hover {
         border-color: var(--accent);
       }
+      .app-key {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-dim);
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .app-key:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+      .app-key--set {
+        color: var(--easy);
+        border-color: rgba(63, 185, 80, 0.5);
+      }
       .app-main {
         height: calc(100vh - 52px);
         overflow-y: auto;
@@ -122,4 +153,6 @@ import { AuthService } from './services/auth.service';
 })
 export class AppComponent {
   readonly auth = inject(AuthService);
+  readonly openAiKey = inject(OpenAiKeyService);
+  readonly keyDialog = inject(OpenAiKeyDialogService);
 }

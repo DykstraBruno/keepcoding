@@ -2,6 +2,7 @@ package com.keepcoding.service;
 
 import com.keepcoding.domain.ArchitectureChallenge;
 import com.keepcoding.dto.ArchitectFeedback;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
@@ -10,20 +11,23 @@ import org.springframework.stereotype.Service;
  * DevCoach para ARQUITETURA: avalia a arquitetura proposta (diagrama Mermaid
  * + justificativas) contra o contexto do desafio, usando Spring AI.
  *
- * <p>Mesmo espírito socrático do {@link CoachAiService}, aplicado a decisões
- * de arquitetura. Sem chave de IA, retorna um feedback de fallback.</p>
+ * <p>BYOK: a chave OpenAI vem do usuário (header {@code X-OpenAI-Key}).
+ * Sem chave válida, retorna um feedback de fallback.</p>
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ArchitectCoachService {
 
-    private final ChatClient chatClient;
+    private final UserScopedChatClientFactory chatClientFactory;
 
-    public ArchitectCoachService(ChatClient.Builder builder) {
-        this.chatClient = builder.defaultSystem(SYSTEM_PROMPT).build();
-    }
+    public ArchitectFeedback analyze(ArchitectureChallenge challenge, String mermaidCode,
+                                     String notes, String userApiKey) {
+        ChatClient chatClient = chatClientFactory.forApiKey(userApiKey);
+        if (chatClient == null) {
+            return fallback();
+        }
 
-    public ArchitectFeedback analyze(ArchitectureChallenge challenge, String mermaidCode, String notes) {
         String userMessage = """
                 Desafio: %s
                 Dificuldade: %s
@@ -45,6 +49,7 @@ public class ArchitectCoachService {
 
         try {
             ArchitectFeedback feedback = chatClient.prompt()
+                    .system(SYSTEM_PROMPT)
                     .user(userMessage)
                     .call()
                     .entity(ArchitectFeedback.class);
@@ -59,7 +64,7 @@ public class ArchitectCoachService {
 
     private ArchitectFeedback fallback() {
         return new ArchitectFeedback("Livro", "Arquitetura recebida.",
-                "Configure OPENAI_API_KEY para receber a análise completa do DevCoach.",
+                "Configure sua chave OpenAI no app para receber a análise completa do DevCoach.",
                 "Não avaliada", "Não avaliada", 60);
     }
 

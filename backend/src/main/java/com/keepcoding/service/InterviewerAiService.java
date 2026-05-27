@@ -4,6 +4,7 @@ import com.keepcoding.domain.Interview;
 import com.keepcoding.domain.InterviewMessage;
 import com.keepcoding.domain.enums.MessageRole;
 import com.keepcoding.dto.InterviewFeedback;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -21,25 +22,24 @@ import java.util.List;
  * vaga, mantém coerência ao longo dos turnos e produz um feedback final
  * estruturado quando a entrevista encerra.
  *
- * <p>O system prompt é construído dinamicamente a cada chamada (não usa
- * {@code defaultSystem}) porque inclui o currículo do candidato.</p>
- *
- * <p>Sem {@code OPENAI_API_KEY} a chamada lança e cai em fallback —
- * mantém o fluxo end-to-end funcional em desenvolvimento.</p>
+ * <p>BYOK: a chave OpenAI vem do usuário (header {@code X-OpenAI-Key}).
+ * Sem chave válida, cai no fallback determinístico — mantém o fluxo
+ * funcionando em desenvolvimento.</p>
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class InterviewerAiService {
 
-    private final ChatClient chatClient;
-
-    public InterviewerAiService(ChatClient.Builder builder) {
-        // Sem defaultSystem: cada call monta seu próprio system prompt.
-        this.chatClient = builder.build();
-    }
+    private final UserScopedChatClientFactory chatClientFactory;
 
     /** Produz a próxima pergunta do entrevistador, considerando todo o histórico. */
-    public String nextQuestion(Interview interview, List<InterviewMessage> history) {
+    public String nextQuestion(Interview interview, List<InterviewMessage> history, String userApiKey) {
+        ChatClient chatClient = chatClientFactory.forApiKey(userApiKey);
+        if (chatClient == null) {
+            return fallbackQuestion(history.size() / 2 + 1);
+        }
+
         List<Message> messages = new ArrayList<>();
         messages.add(new SystemMessage(systemPromptForInterview(interview)));
         for (InterviewMessage m : history) {
@@ -68,7 +68,12 @@ public class InterviewerAiService {
     }
 
     /** Gera o feedback final estruturado a partir da transcrição completa. */
-    public InterviewFeedback produceFeedback(Interview interview, List<InterviewMessage> history) {
+    public InterviewFeedback produceFeedback(Interview interview, List<InterviewMessage> history, String userApiKey) {
+        ChatClient chatClient = chatClientFactory.forApiKey(userApiKey);
+        if (chatClient == null) {
+            return fallbackFeedback();
+        }
+
         StringBuilder transcript = new StringBuilder();
         for (InterviewMessage m : history) {
             transcript.append(m.getRole() == MessageRole.INTERVIEWER ? "ENTREVISTADOR" : "CANDIDATO")
@@ -180,12 +185,12 @@ public class InterviewerAiService {
     // ---------------------------------------------------------------- fallbacks
     private String fallbackQuestion(int n) {
         if (n == 1) {
-            return "[Modo fallback — OPENAI_API_KEY não configurada] "
+            return "[Modo fallback — configure sua chave OpenAI no app] "
                     + "Olá! Bem-vindo. Para começarmos, gostaria que você se apresentasse "
                     + "em até 10 minutos: conte sua trajetória, suas principais experiências "
                     + "e o que te trouxe a buscar esta vaga.";
         }
-        return "[Modo fallback — OPENAI_API_KEY não configurada] Pergunta " + (n - 1)
+        return "[Modo fallback — configure sua chave OpenAI no app] Pergunta " + (n - 1)
                 + " (até ~4 min de resposta): Conte sobre um projeto desafiador do seu "
                 + "currículo, qual foi seu papel, as decisões técnicas que você tomou e o resultado.";
     }
@@ -193,10 +198,10 @@ public class InterviewerAiService {
     private InterviewFeedback fallbackFeedback() {
         return new InterviewFeedback(
                 "Adequado",
-                "Avaliação automática indisponível — configure OPENAI_API_KEY para receber o feedback completo do entrevistador.",
+                "Avaliação automática indisponível — configure sua chave OpenAI no app para receber o feedback completo do entrevistador.",
                 List.of("Manteve o diálogo até o final"),
                 List.of("Profundidade técnica não pôde ser avaliada sem IA"),
-                List.of("Configurar a chave do provedor de IA e refazer a entrevista"),
+                List.of("Configurar a chave OpenAI no app e refazer a entrevista"),
                 60);
     }
 }

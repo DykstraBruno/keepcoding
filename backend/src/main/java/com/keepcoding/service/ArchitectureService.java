@@ -49,7 +49,8 @@ public class ArchitectureService {
 
     /** Recebe a arquitetura proposta, pede a análise do DevCoach e persiste. */
     @Transactional
-    public ArchitectureSubmissionResponse submit(ArchitectureSubmissionRequest request, String userEmail) {
+    public ArchitectureSubmissionResponse submit(ArchitectureSubmissionRequest request,
+                                                 String userEmail, String userApiKey) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado: " + userEmail));
         ArchitectureChallenge challenge = challengeRepository.findById(request.challengeId())
@@ -57,7 +58,7 @@ public class ArchitectureService {
                         "Desafio não encontrado: " + request.challengeId()));
 
         ArchitectFeedback feedback = architectCoachService.analyze(
-                challenge, request.mermaidCode(), request.notes());
+                challenge, request.mermaidCode(), request.notes(), userApiKey);
 
         ArchitectureSubmission submission = submissionRepository.save(ArchitectureSubmission.builder()
                 .user(user)

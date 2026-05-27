@@ -39,8 +39,9 @@ public class ArchitectureController {
     @PostMapping("/submissions")
     public ResponseEntity<ArchitectureSubmissionResponse> submit(
             @Valid @RequestBody ArchitectureSubmissionRequest request,
-            @AuthenticationPrincipal UserDetails principal) {
+            @AuthenticationPrincipal UserDetails principal,
+            @RequestHeader(value = "X-OpenAI-Key", required = false) String openAiKey) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(architectureService.submit(request, principal.getUsername()));
+                .body(architectureService.submit(request, principal.getUsername(), openAiKey));
     }
 }
