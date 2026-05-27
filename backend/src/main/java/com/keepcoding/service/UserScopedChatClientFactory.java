@@ -28,14 +28,17 @@ public class UserScopedChatClientFactory {
 
     private static final String PLACEHOLDER = "changeme";
 
+    private final String baseUrl;
     private final String defaultApiKey;
     private final String defaultModel;
     private final Double defaultTemperature;
 
     public UserScopedChatClientFactory(
+            @Value("${spring.ai.openai.base-url:https://openrouter.ai/api/v1}") String baseUrl,
             @Value("${spring.ai.openai.api-key:}") String defaultApiKey,
-            @Value("${spring.ai.openai.chat.options.model:gpt-4o-mini}") String defaultModel,
+            @Value("${spring.ai.openai.chat.options.model:openai/gpt-4o-mini}") String defaultModel,
             @Value("${spring.ai.openai.chat.options.temperature:0.4}") Double defaultTemperature) {
+        this.baseUrl = baseUrl;
         this.defaultApiKey = defaultApiKey;
         this.defaultModel = defaultModel;
         this.defaultTemperature = defaultTemperature;
@@ -50,7 +53,10 @@ public class UserScopedChatClientFactory {
         if (key == null) {
             return null;
         }
-        OpenAiApi api = OpenAiApi.builder().apiKey(key).build();
+        OpenAiApi api = OpenAiApi.builder()
+                .baseUrl(baseUrl)
+                .apiKey(key)
+                .build();
         OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .model(defaultModel)
                 .temperature(defaultTemperature)

@@ -1,52 +1,46 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { OpenAiKeyDialogService } from '../../services/openai-key-dialog.service';
 import { OpenAiKeyService } from '../../services/openai-key.service';
+import { OpenRouterAuthService } from '../../services/openrouter-auth.service';
 
 /**
- * Modal de cadastro/atualização da chave OpenAI do usuário (BYOK).
+ * Modal "Conectar Coach": dispara o login OAuth (PKCE) com o OpenRouter
+ * e, ao voltar do callback, a chave já fica salva via {@link OpenAiKeyService}.
  *
- * Renderizado no shell do AppComponent. Abre quando
- * {@link OpenAiKeyDialogService#visible} fica true — ou via
- * {@link OpenAiKeyDialogService#requestKey} (que retorna uma Promise
- * pra quem disparou a ação de IA).
+ * Caminho longo do paste sumiu — usuário não precisa nunca ver chave
+ * crua. OpenRouter é um proxy compatível com a API OpenAI; aceita
+ * modelos da OpenAI, Anthropic, Google etc. com a mesma chave.
  */
 @Component({
   selector: 'app-openai-key-dialog',
-  imports: [FormsModule],
+  imports: [],
   templateUrl: './openai-key-dialog.component.html',
   styleUrl: './openai-key-dialog.component.scss',
 })
 export class OpenAiKeyDialogComponent {
   readonly dialog = inject(OpenAiKeyDialogService);
   readonly keyService = inject(OpenAiKeyService);
+  private readonly auth = inject(OpenRouterAuthService);
 
-  readonly draft = signal('');
-  readonly showKey = signal(false);
+  readonly redirecting = signal(false);
 
-  onSave(): void {
-    const value = this.draft().trim();
-    if (!value) {
+  async onConnect(): Promise<void> {
+    if (this.redirecting()) {
       return;
     }
-    this.dialog.resolveSaved(value);
-    this.draft.set('');
-    this.showKey.set(false);
+    this.redirecting.set(true);
+    try {
+      await this.auth.startLogin();
+    } catch {
+      this.redirecting.set(false);
+    }
   }
 
-  onCancel(): void {
+  onSkip(): void {
     this.dialog.resolveCancelled();
-    this.draft.set('');
-    this.showKey.set(false);
   }
 
-  onRemove(): void {
-    this.keyService.clear();
-    this.draft.set('');
-    this.showKey.set(false);
-  }
-
-  toggleShowKey(): void {
-    this.showKey.update((v) => !v);
+  onDisconnect(): void {
+    this.auth.disconnect();
   }
 }

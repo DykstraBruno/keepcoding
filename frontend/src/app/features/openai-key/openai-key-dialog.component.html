@@ -1,70 +1,50 @@
 @if (dialog.visible()) {
-  <div class="overlay" (click)="onCancel()">
+  <div class="overlay" (click)="onSkip()">
     <div class="modal" (click)="$event.stopPropagation()">
       <header class="modal__head">
-        <span class="logo">🔑</span>
+        <span class="logo">🧠</span>
         <div>
-          <h2 class="modal__title">Conectar com OpenAI</h2>
+          <h2 class="modal__title">Conectar Coach</h2>
           <p class="modal__sub">
-            DevCoach e Entrevistador usam SUA chave OpenAI. Ela fica só no seu
-            navegador (localStorage) — o servidor nunca persiste.
+            DevCoach e Entrevistador funcionam com IA real ao conectar
+            sua conta OpenRouter — um único login te dá acesso a
+            <b>GPT</b>, <b>Claude</b>, <b>Gemini</b> e outros modelos.
           </p>
         </div>
       </header>
 
-      <ol class="steps">
-        <li>
-          Pegue uma chave em
-          <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">
-            platform.openai.com/api-keys
-          </a>
-        </li>
-        <li>Cole abaixo (começa com <code>sk-</code>).</li>
-        <li>Salvar. Pronto — Coach e Entrevistador passam a falar de verdade.</li>
-      </ol>
-
-      <label class="field">
-        <span class="field__label">Chave OpenAI</span>
-        <div class="field__row">
-          <input
-            class="field__input"
-            [type]="showKey() ? 'text' : 'password'"
-            placeholder="sk-..."
-            autocomplete="off"
-            spellcheck="false"
-            [ngModel]="draft()"
-            (ngModelChange)="draft.set($event)"
-            name="openai-key" />
-          <button
-            type="button"
-            class="field__toggle"
-            (click)="toggleShowKey()"
-            [title]="showKey() ? 'Ocultar' : 'Mostrar'">
-            {{ showKey() ? '🙈' : '👁' }}
-          </button>
-        </div>
-      </label>
+      <ul class="benefits">
+        <li>🔒 Login OAuth — você nunca cola chave nenhuma.</li>
+        <li>💳 Você controla seus créditos no openrouter.ai.</li>
+        <li>🧪 Tem opções gratuitas pra testar (modelos {{ '`:free`' }}).</li>
+      </ul>
 
       @if (keyService.hasKey()) {
-        <p class="status">Já há uma chave salva neste navegador.</p>
+        <div class="status status--connected">
+          ✅ Coach já está conectado neste navegador.
+        </div>
       }
 
       <footer class="modal__actions">
         @if (keyService.hasKey()) {
-          <button type="button" class="btn-danger" (click)="onRemove()">Remover chave</button>
+          <button type="button" class="btn-danger" (click)="onDisconnect()">
+            Desconectar
+          </button>
         }
-        <button type="button" class="btn-secondary" (click)="onCancel()">Pular</button>
+        <button type="button" class="btn-secondary" (click)="onSkip()">
+          Pular
+        </button>
         <button
           type="button"
           class="btn-primary"
-          [disabled]="!draft().trim()"
-          (click)="onSave()">
-          Salvar
+          [disabled]="redirecting()"
+          (click)="onConnect()">
+          {{ redirecting() ? 'Redirecionando…' : (keyService.hasKey() ? 'Reconectar' : 'Conectar com OpenRouter') }}
         </button>
       </footer>
 
       <p class="footnote">
-        Sem chave o app funciona, mas o feedback do DevCoach/Entrevistador vira
+        Sem conexão o app funciona, mas o DevCoach/Entrevistador devolvem
         um texto genérico de fallback.
       </p>
     </div>

@@ -19,12 +19,15 @@ spring:
         format_sql: true
 
   # --- Spring AI / DevCoach ---
+  # Chamadas vao para o OpenRouter (compativel com API OpenAI). A chave do
+  # usuario chega via header X-OpenAI-Key (BYOK obtido via OAuth PKCE no front).
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY:changeme}
+      base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}
+      api-key: ${OPENROUTER_API_KEY:changeme}
       chat:
         options:
-          model: gpt-4o-mini
+          model: ${OPENROUTER_MODEL:openai/gpt-4o-mini}
           temperature: 0.4
 
 # --- Sandbox Judge0 (execucao de codigo) ---

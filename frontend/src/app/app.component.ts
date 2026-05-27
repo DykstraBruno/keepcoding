@@ -54,8 +54,8 @@ import { OpenAiKeyDialogComponent } from './features/openai-key/openai-key-dialo
           class="app-key"
           [class.app-key--set]="openAiKey.hasKey()"
           (click)="keyDialog.open()"
-          [title]="openAiKey.hasKey() ? 'Chave OpenAI configurada — clique para atualizar' : 'Configurar chave OpenAI (BYOK)'">
-          🔑 {{ openAiKey.hasKey() ? 'OpenAI conectada' : 'Conectar OpenAI' }}
+          [title]="openAiKey.hasKey() ? 'Coach conectado (OpenRouter) — clique para gerenciar' : 'Conectar Coach via OpenRouter'">
+          🧠 {{ openAiKey.hasKey() ? 'Coach conectado' : 'Conectar Coach' }}
         </button>
         <span class="app-user">{{ user.username }} · {{ user.xp }} XP</span>
         <button type="button" class="app-logout" (click)="auth.logout()">Sair</button>
