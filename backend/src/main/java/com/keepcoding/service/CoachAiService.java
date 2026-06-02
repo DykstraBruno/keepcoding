@@ -15,9 +15,8 @@ import org.springframework.stereotype.Service;
  * classifica a solução (Brilhante, Ótimo, Livro, Incompleto, Gafe), dá uma
  * dica socrática e calcula a complexidade Big O.</p>
  *
- * <p>BYOK: a chave OpenAI vem do usuário (header {@code X-OpenAI-Key}).
- * Se não houver chave nem do usuário nem na configuração global, devolve
- * um feedback de fallback para o fluxo não quebrar em desenvolvimento.</p>
+ * <p>OAuth: usa token Google (Gemini) do usuário. O contexto do problema é
+ * montado no prompt do sistema — o aluno só vê o feedback do coach.</p>
  */
 @Slf4j
 @Service
@@ -30,14 +29,11 @@ public class CoachAiService {
      * Analisa o código submetido e produz o feedback do DevCoach.
      *
      * @param accepted     true se a submissão passou em todos os testes
-     * @param userApiKey   chave OpenAI do usuário (pode ser null/blank)
+     * @param userEmail  e-mail do usuário autenticado (token OAuth no servidor)
      */
     public CoachFeedback analyze(Problem problem, Language language, String code,
-                                 boolean accepted, String userApiKey) {
-        ChatClient chatClient = chatClientFactory.forApiKey(userApiKey);
-        if (chatClient == null) {
-            return fallback(accepted);
-        }
+                                 boolean accepted, String userEmail) {
+        ChatClient chatClient = chatClientFactory.forUser(userEmail);
 
         String verdict = accepted
                 ? "ACEITO - passou em todos os casos de teste"
@@ -82,10 +78,10 @@ public class CoachAiService {
     private CoachFeedback fallback(boolean accepted) {
         return accepted
                 ? new CoachFeedback("Livro", "Solução aceita!",
-                    "Configure sua chave OpenAI no app para receber a análise completa do DevCoach.",
+                    "Conecte sua conta de IA (OAuth) para receber a análise completa do DevCoach.",
                     "O(?)", "O(?)", 70)
                 : new CoachFeedback("Incompleto", "Ainda não chegou lá.",
-                    "Revise os casos de borda. Configure sua chave OpenAI para dicas detalhadas.",
+                    "Revise os casos de borda. Conecte sua conta de IA para dicas detalhadas.",
                     "O(?)", "O(?)", 30);
     }
 

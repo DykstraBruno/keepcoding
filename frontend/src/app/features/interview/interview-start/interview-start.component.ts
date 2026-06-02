@@ -2,8 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { InterviewService } from '../../../services/interview.service';
-import { OpenAiKeyService } from '../../../services/openai-key.service';
-import { OpenAiKeyDialogService } from '../../../services/openai-key-dialog.service';
+import { ConnectionService } from '../../../services/connection.service';
+import { ConnectionDialogService } from '../../connection/connection-dialog.service';
 
 /** Tela inicial: candidato informa vaga + cola currículo e inicia a entrevista. */
 @Component({
@@ -15,9 +15,8 @@ import { OpenAiKeyDialogService } from '../../../services/openai-key-dialog.serv
 export class InterviewStartComponent {
   private readonly interviewService = inject(InterviewService);
   private readonly router = inject(Router);
-  private readonly openAiKey = inject(OpenAiKeyService);
-  private readonly keyDialog = inject(OpenAiKeyDialogService);
-  private promptedKey = false;
+  readonly connections = inject(ConnectionService);
+  readonly connectDialog = inject(ConnectionDialogService);
 
   readonly targetRole = signal('');
   readonly resumeText = signal('');
@@ -38,9 +37,10 @@ export class InterviewStartComponent {
     if (!this.canSubmit()) {
       return;
     }
-    if (!this.openAiKey.hasKey() && !this.promptedKey) {
-      this.promptedKey = true;
-      await this.keyDialog.requestKey();
+    if (!this.connections.isConnected('GOOGLE')) {
+      this.error.set('Autorize o KeepCoding a usar IA antes de iniciar a entrevista.');
+      this.connectDialog.open();
+      return;
     }
     this.starting.set(true);
     this.error.set(null);
@@ -53,7 +53,13 @@ export class InterviewStartComponent {
       .subscribe({
         next: (res) => this.router.navigate(['/interviews', res.interviewId]),
         error: (err) => {
-          this.error.set(err?.error?.error ?? 'Não foi possível iniciar a entrevista.');
+          const code = err?.error?.code;
+          if (code === 'AI_NOT_CONNECTED') {
+            this.error.set('Autorize o KeepCoding a usar IA antes de iniciar.');
+            this.connectDialog.open();
+          } else {
+            this.error.set(err?.error?.error ?? 'Não foi possível iniciar a entrevista.');
+          }
           this.starting.set(false);
         },
       });

@@ -1,14 +1,14 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
-import { OpenAiKeyService } from './services/openai-key.service';
-import { OpenAiKeyDialogService } from './services/openai-key-dialog.service';
-import { OpenAiKeyDialogComponent } from './features/openai-key/openai-key-dialog.component';
+import { ConnectionService } from './services/connection.service';
+import { ConnectionDialogService } from './features/connection/connection-dialog.service';
+import { ConnectionDialogComponent } from './features/connection/connection-dialog.component';
 
 /** Shell da aplicação: cabeçalho com navegação + área roteada. */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, OpenAiKeyDialogComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ConnectionDialogComponent],
   template: `
     <header class="app-header">
       <span class="app-logo">&lt;/&gt;</span>
@@ -52,10 +52,10 @@ import { OpenAiKeyDialogComponent } from './features/openai-key/openai-key-dialo
         <button
           type="button"
           class="app-key"
-          [class.app-key--set]="openAiKey.hasKey()"
-          (click)="keyDialog.open()"
-          [title]="openAiKey.hasKey() ? 'Coach conectado (OpenRouter) — clique para gerenciar' : 'Conectar Coach via OpenRouter'">
-          🧠 {{ openAiKey.hasKey() ? 'Coach conectado' : 'Conectar Coach' }}
+          [class.app-key--set]="connections.connections().length > 0"
+          (click)="connectDialog.open()"
+          [title]="connections.connections().length > 0 ? 'Conta de IA autorizada — clique para gerenciar' : 'Autorizar IA (OAuth)'">
+          🤝 {{ connections.connections().length > 0 ? 'IA autorizada' : 'Autorizar IA' }}
         </button>
         <span class="app-user">{{ user.username }} · {{ user.xp }} XP</span>
         <button type="button" class="app-logout" (click)="auth.logout()">Sair</button>
@@ -65,7 +65,7 @@ import { OpenAiKeyDialogComponent } from './features/openai-key/openai-key-dialo
       <router-outlet />
     </main>
 
-    <app-openai-key-dialog />
+    <app-connection-dialog />
   `,
   styles: [
     `
@@ -151,8 +151,19 @@ import { OpenAiKeyDialogComponent } from './features/openai-key/openai-key-dialo
     `,
   ],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   readonly auth = inject(AuthService);
-  readonly openAiKey = inject(OpenAiKeyService);
-  readonly keyDialog = inject(OpenAiKeyDialogService);
+  readonly connections = inject(ConnectionService);
+  readonly connectDialog = inject(ConnectionDialogService);
+
+  async ngOnInit(): Promise<void> {
+    // Carrega estado das conexões assim que o usuário entra.
+    if (this.auth.currentUser()) {
+      try {
+        await this.connections.refresh();
+      } catch {
+        /* ignore — usuário pode não estar autenticado */
+      }
+    }
+  }
 }

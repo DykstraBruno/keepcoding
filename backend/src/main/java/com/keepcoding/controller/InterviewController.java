@@ -28,10 +28,9 @@ public class InterviewController {
     @PostMapping("/start")
     public ResponseEntity<InterviewTurnResponse> start(
             @Valid @RequestBody StartInterviewRequest request,
-            @AuthenticationPrincipal UserDetails principal,
-            @RequestHeader(value = "X-OpenAI-Key", required = false) String openAiKey) {
+            @AuthenticationPrincipal UserDetails principal) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(interviewService.start(request, principal.getUsername(), openAiKey));
+                .body(interviewService.start(request, principal.getUsername()));
     }
 
     /** Envia uma resposta; devolve a próxima pergunta ou o feedback final. */
@@ -39,10 +38,9 @@ public class InterviewController {
     public ResponseEntity<InterviewTurnResponse> answer(
             @PathVariable Long id,
             @Valid @RequestBody AnswerRequest request,
-            @AuthenticationPrincipal UserDetails principal,
-            @RequestHeader(value = "X-OpenAI-Key", required = false) String openAiKey) {
+            @AuthenticationPrincipal UserDetails principal) {
         return ResponseEntity.ok(
-                interviewService.answer(id, request, principal.getUsername(), openAiKey));
+                interviewService.answer(id, request, principal.getUsername()));
     }
 
     /** Histórico das entrevistas do usuário autenticado. */

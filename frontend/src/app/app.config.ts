@@ -3,13 +3,12 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
-import { openAiKeyInterceptor } from './interceptors/openai-key.interceptor';
 
 /** Providers globais da aplicação standalone. */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor, openAiKeyInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor])),
   ],
 };

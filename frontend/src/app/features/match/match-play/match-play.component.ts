@@ -4,8 +4,6 @@ import { Subscription } from 'rxjs';
 import { CodeEditorComponent } from '../../problem-detail/components/code-editor/code-editor.component';
 import { AuthService } from '../../../services/auth.service';
 import { MatchService } from '../../../services/match.service';
-import { OpenAiKeyService } from '../../../services/openai-key.service';
-import { OpenAiKeyDialogService } from '../../../services/openai-key-dialog.service';
 import { MatchWsService } from '../../../services/match-ws.service';
 import { MatchEvent, MatchState } from '../../../models/match.model';
 import {
@@ -39,9 +37,6 @@ export class MatchPlayComponent implements OnInit, OnDestroy {
   private readonly service = inject(MatchService);
   private readonly ws = inject(MatchWsService);
   private readonly auth = inject(AuthService);
-  private readonly openAiKey = inject(OpenAiKeyService);
-  private readonly keyDialog = inject(OpenAiKeyDialogService);
-  private promptedKey = false;
 
   private matchId = 0;
   private exitingProgrammatically = false;
@@ -152,10 +147,6 @@ export class MatchPlayComponent implements OnInit, OnDestroy {
   async submit(): Promise<void> {
     if (this.running() || this.phase() !== 'PLAYING') {
       return;
-    }
-    if (!this.openAiKey.hasKey() && !this.promptedKey) {
-      this.promptedKey = true;
-      await this.keyDialog.requestKey();
     }
     this.running.set(true);
     this.service

@@ -52,7 +52,7 @@ public class InterviewService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public InterviewTurnResponse start(StartInterviewRequest request, String userEmail, String userApiKey) {
+    public InterviewTurnResponse start(StartInterviewRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado: " + userEmail));
 
@@ -69,7 +69,7 @@ public class InterviewService {
                 .build());
 
         // 1ª mensagem do entrevistador = saudação + pedido de apresentação.
-        String firstMessage = interviewerAiService.nextQuestion(interview, List.of(), userApiKey);
+        String firstMessage = interviewerAiService.nextQuestion(interview, List.of(), userEmail);
         messageRepository.save(InterviewMessage.builder()
                 .interview(interview)
                 .role(MessageRole.INTERVIEWER)
@@ -90,7 +90,7 @@ public class InterviewService {
 
     @Transactional
     public InterviewTurnResponse answer(Long interviewId, AnswerRequest request,
-                                        String userEmail, String userApiKey) {
+                                        String userEmail) {
         Interview interview = loadOwned(interviewId, userEmail);
         if (interview.getStatus() != InterviewStatus.IN_PROGRESS) {
             throw new IllegalArgumentException("Esta entrevista já foi encerrada.");
@@ -115,7 +115,7 @@ public class InterviewService {
 
         // 2) Última resposta esperada? Encerra com feedback final.
         if (answersGiven >= totalCandidateTurns) {
-            InterviewFeedback feedback = interviewerAiService.produceFeedback(interview, history, userApiKey);
+            InterviewFeedback feedback = interviewerAiService.produceFeedback(interview, history, userEmail);
             interview.setFinalFeedbackJson(toJson(feedback));
             interview.setStatus(InterviewStatus.COMPLETED);
             interview.setFinishedAt(Instant.now());
@@ -133,7 +133,7 @@ public class InterviewService {
         }
 
         // 3) Próxima pergunta do bloco.
-        String nextQuestion = interviewerAiService.nextQuestion(interview, history, userApiKey);
+        String nextQuestion = interviewerAiService.nextQuestion(interview, history, userEmail);
         messageRepository.save(InterviewMessage.builder()
                 .interview(interview)
                 .role(MessageRole.INTERVIEWER)

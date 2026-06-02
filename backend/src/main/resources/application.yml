@@ -19,15 +19,14 @@ spring:
         format_sql: true
 
   # --- Spring AI / DevCoach ---
-  # Chamadas vao para o OpenRouter (compativel com API OpenAI). A chave do
-  # usuario chega via header X-OpenAI-Key (BYOK obtido via OAuth PKCE no front).
+  # OpenAI direto (chave global) usada apenas como fallback de dev/teste.
+  # Em produção a IA usa tokens OAuth do usuário (ver keepcoding.oauth abaixo).
   ai:
     openai:
-      base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}
-      api-key: ${OPENROUTER_API_KEY:changeme}
+      api-key: ${OPENAI_API_KEY:changeme}
       chat:
         options:
-          model: ${OPENROUTER_MODEL:openai/gpt-4o-mini}
+          model: gpt-4o-mini
           temperature: 0.4
 
 # --- Sandbox Judge0 (execucao de codigo) ---
@@ -39,12 +38,26 @@ judge0:
     java: 62        # OpenJDK 17
     typescript: 74  # TypeScript 5
 
-# --- Autenticacao JWT ---
+# --- Autenticacao JWT + OAuth de providers externos ---
 keepcoding:
   jwt:
     # Em producao, defina JWT_SECRET via variavel de ambiente (>= 32 bytes).
     secret: ${JWT_SECRET:change-this-secret-to-a-long-random-value-min-32-bytes-keepcoding}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}   # 24h
+  oauth:
+    # Chave AES-256 (64 hex = 32 bytes) para criptografar tokens OAuth no banco.
+    # GERAR via: openssl rand -hex 32
+    encryption-key: ${OAUTH_ENCRYPTION_KEY:}
+    google:
+      client-id:     ${GOOGLE_OAUTH_CLIENT_ID:}
+      client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
+      # Frontend route que recebe ?code+state e POSTa para /api/oauth/google/exchange.
+      redirect-uri:  ${GOOGLE_OAUTH_REDIRECT_URI:http://localhost:4200/oauth/callback}
+      scopes:        ${GOOGLE_OAUTH_SCOPES:openid email profile https://www.googleapis.com/auth/generative-language}
+  ai:
+    require-oauth: ${AI_REQUIRE_OAUTH:true}
+    gemini:
+      model: ${GEMINI_MODEL:gemini-2.0-flash}
 
 server:
   port: 8080

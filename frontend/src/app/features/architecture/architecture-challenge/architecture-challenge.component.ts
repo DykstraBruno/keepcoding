@@ -2,8 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ArchitectureService } from '../../../services/architecture.service';
-import { OpenAiKeyService } from '../../../services/openai-key.service';
-import { OpenAiKeyDialogService } from '../../../services/openai-key-dialog.service';
+import { ConnectionService } from '../../../services/connection.service';
+import { ConnectionDialogService } from '../../connection/connection-dialog.service';
 import {
   ArchitectureChallenge,
   ArchitectureSubmissionResponse,
@@ -32,9 +32,8 @@ const STARTER_MERMAID = `graph TD
 export class ArchitectureChallengeComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly architectureService = inject(ArchitectureService);
-  private readonly openAiKey = inject(OpenAiKeyService);
-  private readonly keyDialog = inject(OpenAiKeyDialogService);
-  private promptedKey = false;
+  private readonly connections = inject(ConnectionService);
+  private readonly connectDialog = inject(ConnectionDialogService);
 
   readonly challenge = signal<ArchitectureChallenge | null>(null);
   readonly mermaidCode = signal<string>(STARTER_MERMAID);
@@ -74,11 +73,10 @@ export class ArchitectureChallengeComponent implements OnInit {
     if (!challenge || this.running()) {
       return;
     }
-    if (!this.openAiKey.hasKey() && !this.promptedKey) {
-      this.promptedKey = true;
-      await this.keyDialog.requestKey();
+    if (!this.connections.isConnected('GOOGLE')) {
+      this.connectDialog.open();
+      return;
     }
-
     this.running.set(true);
     this.result.set(null);
 
@@ -94,6 +92,9 @@ export class ArchitectureChallengeComponent implements OnInit {
           this.running.set(false);
         },
         error: (err) => {
+          if (err?.error?.code === 'AI_NOT_CONNECTED') {
+            this.connectDialog.open();
+          }
           console.error('Falha na submissão de arquitetura', err);
           this.running.set(false);
         },

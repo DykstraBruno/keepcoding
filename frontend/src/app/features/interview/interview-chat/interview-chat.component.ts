@@ -13,8 +13,6 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { InterviewService } from '../../../services/interview.service';
-import { OpenAiKeyService } from '../../../services/openai-key.service';
-import { OpenAiKeyDialogService } from '../../../services/openai-key-dialog.service';
 import {
   InterviewFeedback,
   InterviewMessageView,
@@ -36,9 +34,6 @@ const PRESENTATION_SECONDS = 10 * 60;
 export class InterviewChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private readonly route = inject(ActivatedRoute);
   private readonly interviewService = inject(InterviewService);
-  private readonly openAiKey = inject(OpenAiKeyService);
-  private readonly keyDialog = inject(OpenAiKeyDialogService);
-  private promptedKey = false;
 
   private interviewId = 0;
   private startEpochMs = 0;
@@ -145,10 +140,6 @@ export class InterviewChatComponent implements OnInit, OnDestroy, AfterViewCheck
     const text = this.draft().trim();
     if (!text || !this.canSend()) {
       return;
-    }
-    if (!this.openAiKey.hasKey() && !this.promptedKey) {
-      this.promptedKey = true;
-      await this.keyDialog.requestKey();
     }
     this.sending.set(true);
 

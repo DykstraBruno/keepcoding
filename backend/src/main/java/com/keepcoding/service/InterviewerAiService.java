@@ -22,9 +22,9 @@ import java.util.List;
  * vaga, mantém coerência ao longo dos turnos e produz um feedback final
  * estruturado quando a entrevista encerra.
  *
- * <p>BYOK: a chave OpenAI vem do usuário (header {@code X-OpenAI-Key}).
- * Sem chave válida, cai no fallback determinístico — mantém o fluxo
- * funcionando em desenvolvimento.</p>
+ * <p>OAuth: usa token Google (Gemini) do usuário via {@link UserScopedChatClientFactory}.
+ * O contexto (currículo, vaga, histórico) é injetado no system prompt — invisível
+ * ao candidato, que só vê a conversa natural do entrevistador.</p>
  */
 @Slf4j
 @Service
@@ -34,11 +34,8 @@ public class InterviewerAiService {
     private final UserScopedChatClientFactory chatClientFactory;
 
     /** Produz a próxima pergunta do entrevistador, considerando todo o histórico. */
-    public String nextQuestion(Interview interview, List<InterviewMessage> history, String userApiKey) {
-        ChatClient chatClient = chatClientFactory.forApiKey(userApiKey);
-        if (chatClient == null) {
-            return fallbackQuestion(history.size() / 2 + 1);
-        }
+    public String nextQuestion(Interview interview, List<InterviewMessage> history, String userEmail) {
+        ChatClient chatClient = chatClientFactory.forUser(userEmail);
 
         List<Message> messages = new ArrayList<>();
         messages.add(new SystemMessage(systemPromptForInterview(interview)));
@@ -68,11 +65,8 @@ public class InterviewerAiService {
     }
 
     /** Gera o feedback final estruturado a partir da transcrição completa. */
-    public InterviewFeedback produceFeedback(Interview interview, List<InterviewMessage> history, String userApiKey) {
-        ChatClient chatClient = chatClientFactory.forApiKey(userApiKey);
-        if (chatClient == null) {
-            return fallbackFeedback();
-        }
+    public InterviewFeedback produceFeedback(Interview interview, List<InterviewMessage> history, String userEmail) {
+        ChatClient chatClient = chatClientFactory.forUser(userEmail);
 
         StringBuilder transcript = new StringBuilder();
         for (InterviewMessage m : history) {
@@ -185,12 +179,12 @@ public class InterviewerAiService {
     // ---------------------------------------------------------------- fallbacks
     private String fallbackQuestion(int n) {
         if (n == 1) {
-            return "[Modo fallback — configure sua chave OpenAI no app] "
+            return "[Modo fallback] "
                     + "Olá! Bem-vindo. Para começarmos, gostaria que você se apresentasse "
                     + "em até 10 minutos: conte sua trajetória, suas principais experiências "
                     + "e o que te trouxe a buscar esta vaga.";
         }
-        return "[Modo fallback — configure sua chave OpenAI no app] Pergunta " + (n - 1)
+        return "[Modo fallback] Pergunta " + (n - 1)
                 + " (até ~4 min de resposta): Conte sobre um projeto desafiador do seu "
                 + "currículo, qual foi seu papel, as decisões técnicas que você tomou e o resultado.";
     }
@@ -198,10 +192,10 @@ public class InterviewerAiService {
     private InterviewFeedback fallbackFeedback() {
         return new InterviewFeedback(
                 "Adequado",
-                "Avaliação automática indisponível — configure sua chave OpenAI no app para receber o feedback completo do entrevistador.",
+                "Avaliação automática indisponível — conecte sua conta de IA (OAuth) para receber o feedback completo do entrevistador.",
                 List.of("Manteve o diálogo até o final"),
                 List.of("Profundidade técnica não pôde ser avaliada sem IA"),
-                List.of("Configurar a chave OpenAI no app e refazer a entrevista"),
+                List.of("Conectar conta de IA no menu e refazer a entrevista"),
                 60);
     }
 }

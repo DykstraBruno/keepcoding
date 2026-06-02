@@ -43,7 +43,7 @@ public class SubmissionService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public SubmissionResponse submit(SubmissionRequest request, String userEmail, String userApiKey) {
+    public SubmissionResponse submit(SubmissionRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Usuario nao encontrado: " + userEmail));
@@ -82,9 +82,9 @@ public class SubmissionService {
             user = userRepository.save(user);
         }
 
-        // 4. DevCoach analisa a qualidade da solução (BYOK: chave do usuário)
+        // 4. DevCoach analisa a qualidade (OAuth token do usuário no servidor)
         CoachFeedback feedback = coachAiService.analyze(
-                problem, request.language(), request.code(), accepted, userApiKey);
+                problem, request.language(), request.code(), accepted, userEmail);
 
         // 5. Serializa o feedback e persiste o resultado final
         submission.setCoachFeedbackJson(toJson(feedback));

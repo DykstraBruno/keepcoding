@@ -11,8 +11,7 @@ import org.springframework.stereotype.Service;
  * DevCoach para ARQUITETURA: avalia a arquitetura proposta (diagrama Mermaid
  * + justificativas) contra o contexto do desafio, usando Spring AI.
  *
- * <p>BYOK: a chave OpenAI vem do usuário (header {@code X-OpenAI-Key}).
- * Sem chave válida, retorna um feedback de fallback.</p>
+ * <p>OAuth: token Google (Gemini) do usuário via {@link UserScopedChatClientFactory}.</p>
  */
 @Slf4j
 @Service
@@ -22,11 +21,8 @@ public class ArchitectCoachService {
     private final UserScopedChatClientFactory chatClientFactory;
 
     public ArchitectFeedback analyze(ArchitectureChallenge challenge, String mermaidCode,
-                                     String notes, String userApiKey) {
-        ChatClient chatClient = chatClientFactory.forApiKey(userApiKey);
-        if (chatClient == null) {
-            return fallback();
-        }
+                                     String notes, String userEmail) {
+        ChatClient chatClient = chatClientFactory.forUser(userEmail);
 
         String userMessage = """
                 Desafio: %s
@@ -64,7 +60,7 @@ public class ArchitectCoachService {
 
     private ArchitectFeedback fallback() {
         return new ArchitectFeedback("Livro", "Arquitetura recebida.",
-                "Configure sua chave OpenAI no app para receber a análise completa do DevCoach.",
+                "Conecte sua conta de IA (OAuth) para receber a análise completa do DevCoach.",
                 "Não avaliada", "Não avaliada", 60);
     }
 

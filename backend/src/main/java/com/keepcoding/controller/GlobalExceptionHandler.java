@@ -1,5 +1,6 @@
 package com.keepcoding.controller;
 
+import com.keepcoding.exception.AiConnectionRequiredException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
         return build(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos");
+    }
+
+    /** Coach/Entrevistador exigem OAuth — sem chave API no browser. */
+    @ExceptionHandler(AiConnectionRequiredException.class)
+    public ResponseEntity<Map<String, Object>> handleAiConnectionRequired(AiConnectionRequiredException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", Instant.now().toString());
+        body.put("status", HttpStatus.PRECONDITION_FAILED.value());
+        body.put("error", ex.getMessage());
+        body.put("code", "AI_NOT_CONNECTED");
+        return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(body);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

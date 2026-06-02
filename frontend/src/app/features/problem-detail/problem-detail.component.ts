@@ -5,6 +5,8 @@ import { DevCoachComponent } from './components/dev-coach/dev-coach.component';
 import { ProblemService } from '../../services/problem.service';
 import { SubmissionService } from '../../services/submission.service';
 import { AuthService } from '../../services/auth.service';
+import { ConnectionService } from '../../services/connection.service';
+import { ConnectionDialogService } from '../connection/connection-dialog.service';
 import { Problem } from '../../models/problem.model';
 import { CoachVerdict } from '../../models/coach.model';
 import { SubmissionResponse } from '../../models/submission.model';
@@ -30,6 +32,8 @@ export class ProblemDetailComponent implements OnInit {
   private readonly problemService = inject(ProblemService);
   private readonly submissionService = inject(SubmissionService);
   private readonly authService = inject(AuthService);
+  private readonly connections = inject(ConnectionService);
+  private readonly connectDialog = inject(ConnectionDialogService);
 
   // ---- Estado reativo (signals) ----
   readonly problem = signal<Problem | null>(null);
@@ -82,6 +86,10 @@ export class ProblemDetailComponent implements OnInit {
     if (!problem || this.running()) {
       return;
     }
+    if (!this.connections.isConnected('GOOGLE')) {
+      this.connectDialog.open();
+      return;
+    }
 
     this.running.set(true);
     this.result.set(null);
@@ -100,6 +108,9 @@ export class ProblemDetailComponent implements OnInit {
           this.authService.updateXp(res.userXp);
         },
         error: (err) => {
+          if (err?.error?.code === 'AI_NOT_CONNECTED') {
+            this.connectDialog.open();
+          }
           console.error('Falha na submissão', err);
           this.running.set(false);
         },

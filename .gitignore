@@ -19,3 +19,8 @@ frontend/.angular/
 *.env
 .env
 *.log
+
+# ---- claude-mem / ruvector ----
+ruvector.db
+ruvector.db-journal
+.ruvector/

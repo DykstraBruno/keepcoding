@@ -1,0 +1,80 @@
+@if (dialog.visible()) {
+  <div class="overlay" (click)="close()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <header class="modal__head">
+        <span class="logo">🤝</span>
+        <div>
+          <h2 class="modal__title">Autorizar IA</h2>
+          <p class="modal__sub">
+            O DevCoach e o Entrevistador usam IA real após você autorizar o
+            KeepCoding. Você será redirecionado para login OAuth — o contexto da
+            conversa é montado automaticamente, sem expor detalhes técnicos.
+          </p>
+        </div>
+      </header>
+
+      <ul class="cards">
+        @for (p of providers; track p.id) {
+          <li
+            class="card"
+            [class.card--connected]="connections.isConnected(p.id)"
+            [class.card--disabled]="!p.available">
+            <div class="card__row">
+              <div class="card__head">
+                <span class="card__label">{{ p.label }}</span>
+                @if (connections.isConnected(p.id)) {
+                  <span class="badge badge--ok">conectado</span>
+                } @else if (!p.available) {
+                  <span class="badge badge--warn">indisponível</span>
+                }
+              </div>
+              <p class="card__desc">{{ p.description }}</p>
+              @if (connections.get(p.id); as conn) {
+                <p class="card__account">
+                  conta: <b>{{ conn.providerAccountEmail ?? '—' }}</b>
+                </p>
+              }
+              @if (!p.available && p.unavailableReason) {
+                <p class="card__warn">⚠ {{ p.unavailableReason }}</p>
+              }
+            </div>
+            <div class="card__action">
+              @if (connections.isConnected(p.id)) {
+                <button
+                  type="button"
+                  class="btn-danger"
+                  [disabled]="busy() === p.id"
+                  (click)="disconnect(p.id)">
+                  {{ busy() === p.id ? '…' : 'Desconectar' }}
+                </button>
+              } @else if (p.available) {
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="busy() === p.id"
+                  (click)="connect(p.id)">
+                  {{ busy() === p.id ? 'Abrindo…' : 'Conectar' }}
+                </button>
+              } @else {
+                <button type="button" class="btn-primary" disabled>—</button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+
+      @if (lastError()) {
+        <p class="error">{{ lastError() }}</p>
+      }
+
+      <footer class="modal__actions">
+        <button type="button" class="btn-secondary" (click)="close()">Fechar</button>
+      </footer>
+
+      <p class="footnote">
+        Tokens ficam criptografados no servidor (AES-GCM). Você pode desconectar
+        a qualquer momento; o token é apagado do banco.
+      </p>
+    </div>
+  </div>
+}

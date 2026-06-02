@@ -5,9 +5,16 @@
   </header>
 
   <p class="hint">
-    Informe a vaga-alvo e cole seu currículo em texto. A IA vai personalizar as
-    perguntas com base no que você escreveu.
+    Informe a vaga-alvo e cole seu currículo em texto. O entrevistador personaliza
+    as perguntas com base no seu perfil — você só vê a conversa natural.
   </p>
+
+  @if (!connections.isConnected('GOOGLE')) {
+    <p class="oauth-banner">
+      ⚠ Para usar o entrevistador com IA, autorize o KeepCoding em
+      <button type="button" class="link-btn" (click)="connectDialog.open()">Autorizar IA</button>.
+    </p>
+  }
 
   <div class="format">
     <strong>Formato padrão da indústria · 40 minutos</strong>
