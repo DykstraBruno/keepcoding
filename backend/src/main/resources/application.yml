@@ -38,20 +38,22 @@ judge0:
     java: 62        # OpenJDK 17
     typescript: 74  # TypeScript 5
 
-# --- Autenticacao JWT + OAuth de providers externos ---
+# --- Autenticacao ---
 keepcoding:
-  jwt:
-    # Em producao, defina JWT_SECRET via variavel de ambiente (>= 32 bytes).
-    secret: ${JWT_SECRET:change-this-secret-to-a-long-random-value-min-32-bytes-keepcoding}
-    expiration-ms: ${JWT_EXPIRATION_MS:86400000}   # 24h
+  # Login do app: JWT emitido pelo Supabase Auth, validado como resource server.
+  # jwks-uri: chaves públicas do projeto (assinatura assimétrica RS256/ES256).
+  # Pegue o PROJECT_REF em: Supabase Dashboard → Project Settings → API.
+  supabase:
+    url:      ${SUPABASE_URL:https://YOUR_PROJECT_REF.supabase.co}
+    jwks-uri: ${SUPABASE_JWKS_URI:https://YOUR_PROJECT_REF.supabase.co/auth/v1/.well-known/jwks.json}
   oauth:
+    # OAuth de PROVIDERS de IA (Google Generative Language) — distinto do login.
     # Chave AES-256 (64 hex = 32 bytes) para criptografar tokens OAuth no banco.
     # GERAR via: openssl rand -hex 32
     encryption-key: ${OAUTH_ENCRYPTION_KEY:}
     google:
       client-id:     ${GOOGLE_OAUTH_CLIENT_ID:}
       client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
-      # Frontend route que recebe ?code+state e POSTa para /api/oauth/google/exchange.
       redirect-uri:  ${GOOGLE_OAUTH_REDIRECT_URI:http://localhost:4200/oauth/callback}
       scopes:        ${GOOGLE_OAUTH_SCOPES:openid email profile https://www.googleapis.com/auth/generative-language}
   ai:

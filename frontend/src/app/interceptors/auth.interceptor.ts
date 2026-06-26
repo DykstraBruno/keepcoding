@@ -4,7 +4,7 @@ import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 /**
- * Anexa o Bearer token a cada requisição.
+ * Anexa o access token do Supabase (Bearer) a cada requisição ao backend.
  * Em caso de 401 (token expirado/inválido), desloga o usuário.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -17,9 +17,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      const isAuthCall = req.url.includes('/api/auth/');
-      if (error.status === 401 && !isAuthCall) {
-        auth.logout();
+      if (error.status === 401) {
+        void auth.logout();
       }
       return throwError(() => error);
     }),

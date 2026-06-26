@@ -8,15 +8,18 @@ import { MatchQueueComponent } from './features/match/match-queue/match-queue.co
 import { MatchPlayComponent } from './features/match/match-play/match-play.component';
 import { RankingComponent } from './features/ranking/ranking.component';
 import { LoginComponent } from './features/auth/login/login.component';
-import { RegisterComponent } from './features/auth/register/register.component';
+import { AuthCallbackComponent } from './features/auth/auth-callback/auth-callback.component';
 import { OAuthCallbackComponent } from './features/connection/oauth-callback.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
+  // Login social (Supabase): Google / Apple / GitHub.
   { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
-  // Callback do popup OAuth (Google/etc.). Roda dentro do popup,
-  // faz o exchange via JWT do localStorage e fecha via postMessage.
+  // Retorno do redirectTo do login social — materializa a sessão e vai à dashboard.
+  { path: 'auth/callback', component: AuthCallbackComponent },
+
+  // Callback do popup OAuth da IA (Google/etc.), distinto do login do app.
+  // Roda dentro do popup, faz o exchange via JWT e fecha via postMessage.
   { path: 'oauth/callback', component: OAuthCallbackComponent, canActivate: [authGuard] },
 
   { path: '', component: ProblemListComponent, canActivate: [authGuard] },

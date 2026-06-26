@@ -1,78 +1,70 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { AuthResponse, AuthUser, LoginRequest, RegisterRequest } from '../models/auth.model';
+import { Provider } from '@supabase/supabase-js';
+import { AuthUser } from '../models/auth.model';
+import { SupabaseService } from './supabase.service';
 
-const TOKEN_KEY = 'kc_token';
-const USER_KEY = 'kc_user';
-
-/** Autenticação JWT: registro, login, logout e estado do usuário. */
+/**
+ * Fachada de autenticação sobre o Supabase Auth.
+ *
+ * <p>Mantém a superfície usada pelo app (currentUser, token, isAuthenticated,
+ * updateXp, logout) para não quebrar componentes existentes, mas a fonte da
+ * verdade é a sessão do {@link SupabaseService}. O backend (Spring) resolve o
+ * usuário local pelo claim `email` do JWT do Supabase — por isso `userId` não
+ * vem daqui.</p>
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly http = inject(HttpClient);
+  private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
-  private readonly base = `${environment.apiUrl}/api/auth`;
 
-  /** Usuário logado (null = anônimo). Reativo via signal. */
-  readonly currentUser = signal<AuthUser | null>(this.readUser());
+  /** XP sobrescrito em memória após uma submissão ACCEPTED inédita. */
+  private readonly xpOverride = signal<number | null>(null);
 
-  register(request: RegisterRequest): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.base}/register`, request)
-      .pipe(tap((res) => this.persist(res)));
+  /** Usuário logado (null = anônimo), derivado da sessão Supabase. */
+  readonly currentUser = computed<AuthUser | null>(() => {
+    const session = this.supabase.session();
+    if (!session) {
+      return null;
+    }
+    const u = session.user;
+    const meta = (u.user_metadata ?? {}) as Record<string, string>;
+    return {
+      userId: 0, // resolvido por email no backend
+      username:
+        meta['full_name'] ??
+        meta['name'] ??
+        meta['user_name'] ??
+        (u.email?.split('@')[0] ?? 'user'),
+      email: u.email ?? '',
+      tierPlan: 'FREE',
+      xp: this.xpOverride() ?? 0,
+      avatarUrl: meta['avatar_url'] ?? meta['picture'] ?? null,
+    };
+  });
+
+  /** Inicia o login social; o browser é redirecionado para o provider. */
+  loginWith(provider: Provider) {
+    return this.supabase.signInWithOAuth(provider);
   }
 
-  login(request: LoginRequest): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.base}/login`, request)
-      .pipe(tap((res) => this.persist(res)));
-  }
-
-  logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    this.currentUser.set(null);
+  async logout(): Promise<void> {
+    await this.supabase.signOut();
+    this.xpOverride.set(null);
     this.router.navigate(['/login']);
   }
 
-  /** Token JWT bruto, usado pelo interceptor HTTP. */
+  /** Access token (JWT do Supabase), usado pelo interceptor HTTP. */
   get token(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return this.supabase.accessToken();
   }
 
   isAuthenticated(): boolean {
-    return this.token !== null;
+    return this.supabase.session() !== null;
   }
 
-  /** Atualiza o XP do usuário logado (chamado após uma submissão ACCEPTED inédita). */
+  /** Atualiza o XP exibido após uma submissão ACCEPTED inédita. */
   updateXp(newXp: number): void {
-    const current = this.currentUser();
-    if (!current || current.xp === newXp) {
-      return;
-    }
-    const updated = { ...current, xp: newXp };
-    localStorage.setItem(USER_KEY, JSON.stringify(updated));
-    this.currentUser.set(updated);
-  }
-
-  /** Salva token + usuário no localStorage e atualiza o signal. */
-  private persist(res: AuthResponse): void {
-    localStorage.setItem(TOKEN_KEY, res.token);
-    const user: AuthUser = {
-      userId: res.userId,
-      username: res.username,
-      email: res.email,
-      tierPlan: res.tierPlan,
-      xp: res.xp,
-    };
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-    this.currentUser.set(user);
-  }
-
-  private readUser(): AuthUser | null {
-    const raw = localStorage.getItem(USER_KEY);
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
+    this.xpOverride.set(newXp);
   }
 }

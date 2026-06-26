@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { InterviewService } from '../../../services/interview.service';
 import { ConnectionService } from '../../../services/connection.service';
+import { AiKeyService } from '../../../services/ai-key.service';
 import { ConnectionDialogService } from '../../connection/connection-dialog.service';
 
 /** Tela inicial: candidato informa vaga + cola currículo e inicia a entrevista. */
@@ -16,6 +17,7 @@ export class InterviewStartComponent {
   private readonly interviewService = inject(InterviewService);
   private readonly router = inject(Router);
   readonly connections = inject(ConnectionService);
+  readonly aiKey = inject(AiKeyService);
   readonly connectDialog = inject(ConnectionDialogService);
 
   readonly targetRole = signal('');
@@ -37,8 +39,8 @@ export class InterviewStartComponent {
     if (!this.canSubmit()) {
       return;
     }
-    if (!this.connections.isConnected('GOOGLE')) {
-      this.error.set('Autorize o KeepCoding a usar IA antes de iniciar a entrevista.');
+    if (!this.connections.isConnected('GOOGLE') && !this.aiKey.isConfigured()) {
+      this.error.set('Configure uma conta de IA (OAuth ou chave própria) antes de iniciar a entrevista.');
       this.connectDialog.open();
       return;
     }

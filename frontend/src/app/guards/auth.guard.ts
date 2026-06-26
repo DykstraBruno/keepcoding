@@ -1,11 +1,16 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { SupabaseService } from '../services/supabase.service';
 
-/** Bloqueia rotas protegidas; redireciona para /login se não autenticado. */
-export const authGuard: CanActivateFn = () => {
-  const auth = inject(AuthService);
+/**
+ * Bloqueia rotas protegidas; redireciona para /login se não houver sessão
+ * Supabase. Assíncrono: aguarda a restauração inicial da sessão (storage/URL)
+ * antes de decidir, evitando "flash" de logout num F5.
+ */
+export const authGuard: CanActivateFn = async () => {
+  const supabase = inject(SupabaseService);
   const router = inject(Router);
 
-  return auth.isAuthenticated() ? true : router.createUrlTree(['/login']);
+  const session = await supabase.ready();
+  return session ? true : router.createUrlTree(['/login']);
 };

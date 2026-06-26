@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { ConnectionService } from './services/connection.service';
+import { AiKeyService } from './services/ai-key.service';
 import { ConnectionDialogService } from './features/connection/connection-dialog.service';
 import { ConnectionDialogComponent } from './features/connection/connection-dialog.component';
 
@@ -52,10 +53,10 @@ import { ConnectionDialogComponent } from './features/connection/connection-dial
         <button
           type="button"
           class="app-key"
-          [class.app-key--set]="connections.connections().length > 0"
+          [class.app-key--set]="aiReady()"
           (click)="connectDialog.open()"
-          [title]="connections.connections().length > 0 ? 'Conta de IA autorizada — clique para gerenciar' : 'Autorizar IA (OAuth)'">
-          🤝 {{ connections.connections().length > 0 ? 'IA autorizada' : 'Autorizar IA' }}
+          [title]="aiReady() ? 'IA configurada — clique para gerenciar' : 'Conectar IA (OAuth ou chave própria)'">
+          🤝 {{ aiReady() ? 'IA pronta' : 'Conectar IA' }}
         </button>
         <span class="app-user">{{ user.username }} · {{ user.xp }} XP</span>
         <button type="button" class="app-logout" (click)="auth.logout()">Sair</button>
@@ -154,7 +155,12 @@ import { ConnectionDialogComponent } from './features/connection/connection-dial
 export class AppComponent implements OnInit {
   readonly auth = inject(AuthService);
   readonly connections = inject(ConnectionService);
+  readonly aiKey = inject(AiKeyService);
   readonly connectDialog = inject(ConnectionDialogService);
+
+  /** True se IA está pronta — OAuth conectado ou BYOK válido configurado. */
+  readonly aiReady = (): boolean =>
+    this.connections.connections().length > 0 || this.aiKey.isConfigured();
 
   async ngOnInit(): Promise<void> {
     // Carrega estado das conexões assim que o usuário entra.

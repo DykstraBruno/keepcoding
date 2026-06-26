@@ -9,7 +9,6 @@ import com.keepcoding.repository.UserRepository;
 import com.keepcoding.security.AesGcmService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +21,27 @@ import java.util.Optional;
  * + leitura pública (sem tokens) para a UI.
  */
 @Service
-@RequiredArgsConstructor
 public class OAuthTokenService {
 
     private final OAuthTokenRepository repository;
     private final UserRepository userRepository;
     private final AesGcmService aes;
-    private final @Lazy GoogleOAuthService googleOAuthService;
+    private final GoogleOAuthService googleOAuthService;
+
+    /**
+     * Construtor manual (em vez de Lombok) para conseguir aplicar
+     * {@code @Lazy} no PARÂMETRO — Spring usa essa anotação só no ponto
+     * de injeção, quebrando o ciclo OAuthTokenService ↔ GoogleOAuthService.
+     */
+    public OAuthTokenService(OAuthTokenRepository repository,
+                             UserRepository userRepository,
+                             AesGcmService aes,
+                             @Lazy GoogleOAuthService googleOAuthService) {
+        this.repository = repository;
+        this.userRepository = userRepository;
+        this.aes = aes;
+        this.googleOAuthService = googleOAuthService;
+    }
 
     /**
      * Upsert: substitui o token existente do par (user, provider) ou cria.

@@ -200,3 +200,100 @@
   border-top: 1px solid var(--border);
   padding-top: 0.7rem;
 }
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.section--byok {
+  border-top: 1px dashed var(--border);
+  padding-top: 0.9rem;
+}
+
+.section__title {
+  margin: 0;
+  font-size: 0.92rem;
+  letter-spacing: 0.2px;
+}
+
+.section__sub {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+.byok-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.byok-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+
+  select,
+  input {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 0.5rem 0.6rem;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.85rem;
+  }
+
+  select:focus,
+  input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+}
+
+.byok-form__row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.byok-form__row input {
+  flex: 1;
+}
+
+.byok-form__hint {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+}
+
+.btn-icon {
+  padding: 0.4rem 0.55rem;
+  font-size: 1rem;
+}
+
+.byok-saved {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--panel-2);
+  border: 1px solid rgba(63, 185, 80, 0.5);
+  border-radius: 9px;
+}
+
+.byok-saved__label {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.byok-saved__masked {
+  margin: 0.15rem 0 0;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}

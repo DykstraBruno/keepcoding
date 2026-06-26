@@ -2,6 +2,7 @@ package com.keepcoding.service;
 
 import com.keepcoding.domain.enums.OAuthProvider;
 import com.keepcoding.exception.AiConnectionRequiredException;
+import com.keepcoding.security.ByokContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -51,11 +52,22 @@ public class UserScopedChatClientFactory {
     }
 
     /**
-     * ChatClient do usuário autenticado. Prioriza token OAuth (Google/Gemini).
-     * Lança {@link AiConnectionRequiredException} se OAuth é obrigatório e
-     * o usuário não conectou conta de IA.
+     * ChatClient do usuário autenticado.
+     *
+     * Prioridade:
+     *  1) BYOK request-scoped (headers X-AI-Provider/X-AI-Key) — preferido,
+     *     custo zero para o servidor, chave nunca persistida.
+     *  2) OAuth Google (token criptografado no DB).
+     *  3) OPENAI_API_KEY global (fallback de dev).
+     *
+     * Lança {@link AiConnectionRequiredException} se nenhuma das opções
+     * estiver disponível e {@code keepcoding.ai.require-oauth=true}.
      */
     public ChatClient forUser(String userEmail) {
+        ChatClient byok = tryByok();
+        if (byok != null) {
+            return byok;
+        }
         return oauthTokenService.getValidAccessToken(userEmail, OAuthProvider.GOOGLE)
                 .map(this::buildGeminiClient)
                 .orElseGet(() -> {
@@ -69,6 +81,14 @@ public class UserScopedChatClientFactory {
                     }
                     return null;
                 });
+    }
+
+    private ChatClient tryByok() {
+        return ByokContext.current().map(k -> switch (k.provider()) {
+            case "GOOGLE" -> buildGeminiClient(k.apiKey());
+            case "OPENAI" -> buildOpenAiClient(k.apiKey());
+            default -> null;
+        }).orElse(null);
     }
 
     private ChatClient buildGeminiClient(String accessToken) {
