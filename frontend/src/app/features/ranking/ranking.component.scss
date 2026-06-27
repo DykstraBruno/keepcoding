@@ -56,7 +56,7 @@
 }
 
 .ranking tbody tr:hover {
-  background: rgba(79, 140, 255, 0.06);
+  background: rgba(0, 217, 122, 0.06);
 }
 
 .sortable {
@@ -91,11 +91,11 @@
 }
 
 .row--me {
-  background: rgba(79, 140, 255, 0.12);
+  background: rgba(0, 217, 122, 0.12);
 }
 
 .row--me:hover {
-  background: rgba(79, 140, 255, 0.18);
+  background: rgba(0, 217, 122, 0.18);
 }
 
 .row--gap td {
@@ -111,7 +111,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--accent);
-  background: rgba(79, 140, 255, 0.15);
+  background: rgba(0, 217, 122, 0.15);
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
 }

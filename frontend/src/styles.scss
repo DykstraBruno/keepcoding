@@ -1,22 +1,22 @@
-/* ================= Tema global KeepCoding ================= */
+/* ================= Tema global KeepCoding (verde + preto) ================= */
 :root {
-  /* superficies */
-  --bg: #0f1117;
-  --panel: #1a1d27;
-  --panel-2: #232733;
-  --border: #2d3242;
+  /* superficies (base preta com leve viés esverdeado pra coesão com accent) */
+  --bg: #000000;
+  --panel: #0a120e;
+  --panel-2: #131e17;
+  --border: #1f3329;
 
   /* texto */
-  --text: #e6e8ee;
-  --text-dim: #9aa0b4;
-  --accent: #4f8cff;
+  --text: #e6f0ea;
+  --text-dim: #7d9b86;
+  --accent: #00d97a; /* esmeralda */
 
-  /* dificuldade */
+  /* dificuldade (semântica preservada) */
   --easy: #3fb950;
   --medium: #d29922;
   --hard: #e5534b;
 
-  /* classificacoes do DevCoach (paleta estilo Chess.com) */
+  /* classificacoes do DevCoach (semântica preservada) */
   --coach-brilhante: #1bb0a6;
   --coach-otimo: #5b8def;
   --coach-livro: #a98b6a;
