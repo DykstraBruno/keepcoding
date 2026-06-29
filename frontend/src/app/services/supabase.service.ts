@@ -56,13 +56,27 @@ export class SupabaseService {
     return this.session()?.access_token ?? null;
   }
 
-  /** Dispara o fluxo OAuth do provider; o browser é redirecionado. */
-  signInWithOAuth(provider: Provider) {
+  /**
+   * Dispara o fluxo OAuth do provider; o browser é redirecionado.
+   *
+   * @param captchaToken Token Turnstile validado no client. Para fluxo OAuth
+   *   o Supabase Auth só consome o token em versões >= 2.151; nas versões
+   *   anteriores o campo é ignorado e o CAPTCHA opera apenas como gate de UI
+   *   (deterrente, não criptográfico). Para password/magic-link o token é
+   *   sempre validado server-side via secret no painel.
+   */
+  signInWithOAuth(provider: Provider, captchaToken?: string) {
+    const options: Record<string, unknown> = {
+      redirectTo: `${window.location.origin}${environment.supabase.redirectPath}`,
+    };
+    if (captchaToken) {
+      options['captchaToken'] = captchaToken;
+    }
     return this.client.auth.signInWithOAuth({
       provider,
-      options: {
-        redirectTo: `${window.location.origin}${environment.supabase.redirectPath}`,
-      },
+      options: options as Parameters<
+        SupabaseClient['auth']['signInWithOAuth']
+      >[0]['options'],
     });
   }
 

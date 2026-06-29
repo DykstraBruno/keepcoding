@@ -1,6 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Provider } from '@supabase/supabase-js';
 import { AuthService } from '../../../services/auth.service';
+import { TurnstileComponent } from '../turnstile.component';
 
 interface SocialButton {
   provider: Provider;
@@ -12,6 +13,7 @@ interface SocialButton {
 @Component({
   selector: 'app-login',
   standalone: true,
+  imports: [TurnstileComponent],
   template: `
     <div class="login">
       <div class="login__card">
@@ -25,13 +27,19 @@ interface SocialButton {
           <p class="login__error" role="alert">{{ error() }}</p>
         }
 
+        <app-turnstile (tokenChange)="onCaptchaToken($event)" />
+
+        @if (!captchaReady() && !error()) {
+          <p class="login__hint">Resolva a verificação para continuar.</p>
+        }
+
         <div class="login__providers">
           @for (btn of buttons; track btn.provider) {
             <button
               type="button"
               class="login__btn"
               [class.login__btn--loading]="loading() === btn.provider"
-              [disabled]="loading() !== null"
+              [disabled]="loading() !== null || !captchaReady()"
               (click)="signIn(btn.provider)">
               <span class="login__btn-icon" [innerHTML]="btn.icon"></span>
               <span>Continuar com {{ btn.label }}</span>
@@ -130,6 +138,12 @@ interface SocialButton {
         border: 1px solid rgba(248, 81, 73, 0.3);
         border-radius: 8px;
       }
+      .login__hint {
+        margin: 0.6rem 0 0;
+        font-size: 0.78rem;
+        text-align: center;
+        color: var(--text-dim);
+      }
       .login__legal {
         margin: 1.5rem 0 0;
         font-size: 0.72rem;
@@ -146,6 +160,16 @@ export class LoginComponent {
   /** provider em andamento (desabilita os botões) ou null. */
   readonly loading = signal<Provider | null>(null);
   readonly error = signal<string | null>(null);
+
+  /** Token Turnstile válido. null enquanto pendente/expirado. */
+  private readonly captchaToken = signal<string | null>(null);
+
+  /** Habilita os botões só quando o CAPTCHA resolveu. */
+  readonly captchaReady = computed(() => this.captchaToken() !== null);
+
+  onCaptchaToken(token: string | null): void {
+    this.captchaToken.set(token);
+  }
 
   readonly buttons: SocialButton[] = [
     {
@@ -169,13 +193,20 @@ export class LoginComponent {
     if (this.loading() !== null) {
       return;
     }
+    const token = this.captchaToken();
+    if (!token) {
+      this.error.set('Resolva a verificação anti-bot antes de entrar.');
+      return;
+    }
     this.loading.set(provider);
     this.error.set(null);
 
-    const { error } = await this.auth.loginWith(provider);
+    const { error } = await this.auth.loginWith(provider, token);
     if (error) {
       this.error.set(error.message ?? 'Falha ao iniciar o login. Tente novamente.');
       this.loading.set(null);
+      // Token Turnstile é single-use; invalida pra forçar re-challenge.
+      this.captchaToken.set(null);
     }
     // Em caso de sucesso o browser é redirecionado ao provider; nada a fazer.
   }

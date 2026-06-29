@@ -43,9 +43,15 @@ export class AuthService {
     };
   });
 
-  /** Inicia o login social; o browser é redirecionado para o provider. */
-  loginWith(provider: Provider) {
-    return this.supabase.signInWithOAuth(provider);
+  /**
+   * Inicia o login social; o browser é redirecionado para o provider.
+   *
+   * @param captchaToken Token Turnstile resolvido na UI. Quando o projeto
+   *   Supabase tem CAPTCHA habilitado, sem token → 400 "Captcha verification
+   *   failed". Em DEV (sem CAPTCHA habilitado) o token é ignorado.
+   */
+  loginWith(provider: Provider, captchaToken?: string) {
+    return this.supabase.signInWithOAuth(provider, captchaToken);
   }
 
   async logout(): Promise<void> {
