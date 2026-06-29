@@ -5,11 +5,20 @@ import { ConnectionService } from './services/connection.service';
 import { AiKeyService } from './services/ai-key.service';
 import { ConnectionDialogService } from './features/connection/connection-dialog.service';
 import { ConnectionDialogComponent } from './features/connection/connection-dialog.component';
+import { CookieBannerComponent } from './features/consent/cookie-banner.component';
+import { CookiePreferencesComponent } from './features/consent/cookie-preferences.component';
 
 /** Shell da aplicação: cabeçalho com navegação + área roteada. */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, ConnectionDialogComponent],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    ConnectionDialogComponent,
+    CookieBannerComponent,
+    CookiePreferencesComponent,
+  ],
   template: `
     <header class="app-header">
       <span class="app-logo">&lt;/&gt;</span>
@@ -64,9 +73,18 @@ import { ConnectionDialogComponent } from './features/connection/connection-dial
     </header>
     <main class="app-main">
       <router-outlet />
+      <footer class="app-footer">
+        <a routerLink="/privacidade" class="app-footer__link">Privacidade</a>
+        <span class="app-footer__sep">·</span>
+        <button type="button" class="app-footer__btn" (click)="prefs.show()">
+          Preferências de cookies
+        </button>
+      </footer>
     </main>
 
     <app-connection-dialog />
+    <app-cookie-banner />
+    <app-cookie-preferences #prefs />
   `,
   styles: [
     `
@@ -148,6 +166,43 @@ import { ConnectionDialogComponent } from './features/connection/connection-dial
       .app-main {
         height: calc(100vh - 52px);
         overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .app-main > router-outlet + * {
+        flex: 1;
+      }
+      .app-footer {
+        margin-top: auto;
+        padding: 0.75rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        border-top: 1px solid var(--border);
+      }
+      .app-footer__link {
+        color: var(--text-dim);
+        text-decoration: none;
+      }
+      .app-footer__link:hover {
+        color: var(--accent);
+      }
+      .app-footer__sep {
+        opacity: 0.5;
+      }
+      .app-footer__btn {
+        background: transparent;
+        border: none;
+        color: var(--text-dim);
+        font: inherit;
+        cursor: pointer;
+        padding: 0;
+      }
+      .app-footer__btn:hover {
+        color: var(--accent);
       }
     `,
   ],

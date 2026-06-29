@@ -34,6 +34,15 @@ export const routes: Routes = [
 
   { path: 'ranking', component: RankingComponent, canActivate: [authGuard] },
 
+  // Pública: política de privacidade LGPD.
+  {
+    path: 'privacidade',
+    loadComponent: () =>
+      import('./features/privacy/privacy-policy.component').then(
+        (m) => m.PrivacyPolicyComponent,
+      ),
+  },
+
   // Lazy-load: a feature de arquitetura carrega o Mermaid (dependência pesada)
   // só quando o usuário acessa estas rotas, mantendo o bundle inicial enxuto.
   {
