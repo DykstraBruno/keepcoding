@@ -64,6 +64,23 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
+        <!-- Redis (rate-limiting distribuído via Lettuce) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- Bucket4j: token bucket algorithm; jdk11+ variant (roda em Java 21) -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk11-core</artifactId>
+            <version>8.14.0</version>
+        </dependency>
+        <!-- Bucket4j + Lettuce: ProxyManager que persiste buckets no Redis -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk11-lettuce</artifactId>
+            <version>8.14.0</version>
+        </dependency>
         <!-- Boilerplate (getters/setters/builders) -->
         <dependency>
             <groupId>org.projectlombok</groupId>

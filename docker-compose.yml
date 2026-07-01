@@ -1,4 +1,4 @@
-# Sobe o PostgreSQL local para o KeepCoding.
+# Sobe PostgreSQL + Redis locais para o KeepCoding.
 # Uso:  docker compose up -d
 services:
   postgres:
@@ -13,5 +13,18 @@ services:
     volumes:
       - keepcoding_pgdata:/var/lib/postgresql/data
 
+  # Redis para rate-limiting distribuído (Bucket4j via Lettuce).
+  # AOF ligado pra manter buckets se container reiniciar; barato pra
+  # dados voláteis desta escala.
+  redis:
+    image: redis:7-alpine
+    container_name: keepcoding-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - keepcoding_redisdata:/data
+
 volumes:
   keepcoding_pgdata:
+  keepcoding_redisdata:

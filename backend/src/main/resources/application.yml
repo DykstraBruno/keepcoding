@@ -8,6 +8,13 @@ spring:
     username: ${DB_USERNAME:keepcoding}
     password: ${DB_PASSWORD:keepcoding}
 
+  # --- Redis (rate-limiting distribuído via Bucket4j) ---
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+
   jpa:
     hibernate:
       # 'update' para desenvolvimento. Em producao use migrations (Flyway/Liquibase).
