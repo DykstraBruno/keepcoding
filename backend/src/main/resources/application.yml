@@ -68,5 +68,13 @@ keepcoding:
     gemini:
       model: ${GEMINI_MODEL:gemini-2.0-flash}
 
+  # --- Rate limiting (Bucket4j + Redis, chave = IP + categoria) ---
+  # Categorias e limites por minuto. Sobrescrever via env em produção.
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    ai:            ${RATE_LIMIT_AI:20}
+    auth-like:     ${RATE_LIMIT_AUTH:10}
+    general:       ${RATE_LIMIT_GENERAL:60}
+
 server:
   port: 8080

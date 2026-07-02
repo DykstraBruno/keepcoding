@@ -1,5 +1,6 @@
 package com.keepcoding.security;
 
+import io.github.bucket4j.distributed.proxy.ProxyManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +35,9 @@ public class SecurityConfig {
     private final SupabaseJwtAuthenticationConverter jwtAuthenticationConverter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtDecoder jwtDecoder) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           JwtDecoder jwtDecoder,
+                                           RateLimitFilter rateLimitFilter) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
@@ -48,8 +51,16 @@ public class SecurityConfig {
                                 .decoder(jwtDecoder)
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter)))
                 // BYOK lê X-AI-Key antes da autenticação do bearer token.
-                .addFilterBefore(byokKeyFilter(), BearerTokenAuthenticationFilter.class);
+                .addFilterBefore(byokKeyFilter(), BearerTokenAuthenticationFilter.class)
+                // Rate-limit é primeira linha de defesa: barra abuso antes de
+                // qualquer processamento (inclusive do bearer).
+                .addFilterBefore(rateLimitFilter, BearerTokenAuthenticationFilter.class);
         return http.build();
+    }
+
+    @Bean
+    public RateLimitFilter rateLimitFilter(ProxyManager<String> proxyManager, RateLimitProperties props) {
+        return new RateLimitFilter(proxyManager, props);
     }
 
     /** Decoder do JWT Supabase a partir do JWKS do projeto (assinatura assimétrica). */
